@@ -33,7 +33,7 @@ Engine](https://github.com/torkelicious/obliberry) made to be easily extendable.
 
 ### Prerequisites
 
-- C++20 compiler (GCC, Clang, MSVC)
+- C++20 compatible compiler (GCC, Clang, MSVC)
 - CMake
 - Git
 
@@ -263,9 +263,7 @@ array
 object
 ```
 
-> **Note**: These are the type names accepted by `is`, which are distinct from the strings returned by the reflection
-> function `type_of()` , most notably, `is` uses `function`/`fn` where `type_of()` returns `"callable"`. See
-> the [Standard Library Reference](docs/STANDARD_LIBRARY.md#type_ofvalue) for `type_of()`'s exact return values.
+> **Note**: These are the type names accepted by `is`, which are distinct from the strings returned by the reflection function `type_of()` — most notably, `is` uses `function`/`fn` where `type_of()` returns `"callable"`. See the [Standard Library Reference](docs/STANDARD_LIBRARY.md#type_ofvalue) for `type_of()`'s exact return values.
 
 ### Expressions
 
@@ -673,6 +671,27 @@ ObSL includes automatic garbage collection with cyclic reference handling.
 See the `Examples/` directory for additional runnable usage examples.
 
 ---
-### todo: 
-- Linter
-- Lsp ?
+
+# todo:
+
+- Proper Linter
+- LSP?
+
+This is still very much a toy language :)
+
+---
+
+# Resources & Acknowledgments
+
+## Learning Resources
+
+ObSL's design and implementation were informed by:
+
+- [Crafting Interpreters](https://craftinginterpreters.com/contents.html) by Robert Nystrom
+- [A Quick Guide to Interpreter Design in Modern C++](https://simplifycpp.org/books/cpp/Quick_Guide_to_Interpreter_Design_by_Modern_CPP.pdf) by Ayman Alheraki
+
+## Third-Party Libraries
+
+| Library | License | Purpose | More |
+|---|---|---|---|
+| [nlohmann/json](https://github.com/nlohmann/json) v3.12.0 | MIT | JSON output for `--lint` mode | [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) |
