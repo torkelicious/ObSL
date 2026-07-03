@@ -23,7 +23,6 @@ graph TD
 **Location**: `include/Lexer.h`, `src/Lexer/Lexer.cpp`
 
 The lexer converts source code into tokens. It handles:
-
 - Keywords (`fn`, `var`, `if`, `while`, etc.)
 - Operators (`+`, `-`, `*`, `/`, `==`, `!=`, etc.)
 - Literals (numbers, strings)
@@ -47,15 +46,13 @@ struct Token {
 
 **Location**: `include/Parser.h`, `src/Parser/Parser.cpp`, `src/Parser/ast.h`
 
-The parser converts tokens into an Abstract Syntax Tree (AST). It implements a recursive descent parser with operator
-precedence.
+The parser converts tokens into an Abstract Syntax Tree (AST). It implements a recursive descent parser with operator precedence.
 
 ### AST Nodes
 
 The AST is composed of statements and expressions:
 
 **Statements**:
-
 - `ExpressionStmt` - expression statement
 - `PrintStmt`, `PrintlnStmt` - print statements
 - `VarStmt` - variable declaration
@@ -69,7 +66,6 @@ The AST is composed of statements and expressions:
 - `TryCatchStmt` - exception handling
 
 **Expressions**:
-
 - `LiteralExpr` - literal values
 - `VariableExpr` - variable reference
 - `BinaryExpr`, `UnaryExpr` - arithmetic/logic
@@ -144,25 +140,21 @@ The standard library provides built-in functionality organized into modules:
 - **Trigonometry/Helpers**: `sin`, `cos`, `tan`, `atan2`, `rad`, `deg`, `pi`, `lerp`, `map_value`
 - **Strings**: `len`, `to_upper`, `to_lower`, `trim`, `contains`, `starts_with`, `substring`, `replace`
 - **Regex**: `regex_match`, `regex_search`, `regex_replace`, `regex_find_all`
-- **System**: `file_exists`, `read_file`, `write_file`, `get_file_ext`, `read`, `readln`, `clock`, `sleep_thread`,
-  `get_env`, `exit`
+- **System**: `file_exists`, `read_file`, `write_file`, `get_file_ext`, `read`, `readln`, `clock`, `sleep_thread`, `get_env`, `exit`
 - **Reflection**: `type_of`, `get_arity`, `has_field`, `get_fields`
 
 ## Entry Point
 
 **Location**: `include/ScriptEntry.h`, `src/ScriptEntry.cpp`
 
-`ScriptEntry` is the entry point used by the `obsl_runtime` CLI (see `ObSLCoreMain.cpp`). It owns a single `Interpreter`
-instance directly and drives it through file execution, a REPL, or `--lint` mode:
+`ScriptEntry` is the entry point used by the `obsl_runtime` CLI (see `ObSLCoreMain.cpp`). It owns a single `Interpreter` instance directly and drives it through file execution, a REPL, or `--lint` mode:
 
 ```cpp
 ObSL::ScriptEntry entry;
 entry.exec(argc, argv);
 ```
 
-This is a separate, single-threaded path from the `ScriptRuntime`/`ScriptWorker` pool described below `ScriptEntry` does
-not go through `ScriptRuntime`. It's the entry point for running scripts standalone from the command line;
-`ScriptRuntime` is for embedding ObSL in a multi-threaded host application, such as the Obliberry Game Engine.
+This is a separate, single-threaded path from the `ScriptRuntime`/`ScriptWorker` pool described below   `ScriptEntry` does not go through `ScriptRuntime`. It's the entry point for running scripts standalone from the command line; `ScriptRuntime` is for embedding ObSL in a multi-threaded host application, such as the Obliberry Game Engine.
 
 ## Runtime & Workers
 
@@ -185,7 +177,6 @@ using "path/to/module.obsl";
 ```
 
 Module features:
-
 - **Caching**: Modules are loaded once and cached
 - **Isolation**: Each module gets its own environment
 - **Re-export**: Module variables are available in the importing scope
@@ -204,11 +195,10 @@ ObSL provides structured error handling:
 **Location**: `CMakeLists.txt`
 
 The project uses CMake with:
-
 - C++20 standard
 - Static library (`libobsl.a`)
-- Runtime executable (`obsl_runtime`)
-- Dependency management (nlohmann/json , used for w.i.p linter)
+- Runtime executable (`obsl_runtime`)   built by default, disable with `-DOBSL_BUILD_RUNTIME=OFF` to produce only `libobsl.a` for embedding
+- Dependency management (nlohmann/json)
 
 ## Thread Safety Design
 
@@ -219,6 +209,4 @@ The project uses CMake with:
 ## Notes
 
 - **String Views**: Lexeme strings use `std::string_view` to avoid allocations during tokenization
-- **Include Style**: All project headers are included with angle brackets (e.g. `#include <Interpreter.h>`,
-  `#include <Parser/ast.h>`), reflecting that headers live in CMake include directories rather than being included
-  relative to the source file
+- **Include Style**: All project headers are included with angle brackets (e.g. `#include <Interpreter.h>`, `#include <Parser/ast.h>`), reflecting that headers live in CMake include directories rather than being included relative to the source file
