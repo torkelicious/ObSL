@@ -80,11 +80,23 @@ cmake ..
 cmake --build .
 ```
 
+### CMake Options
+
+| Option | Default | Description |
+|---|---|---|
+| `OBSL_BUILD_RUNTIME` | `ON` | Builds the `obsl_runtime` CLI executable. Set to `OFF` to build only the `obsl` static library   useful when embedding ObSL into another project (e.g. the Obliberry Game Engine) that doesn't need the standalone CLI/REPL. |
+
+```bash
+cmake .. -DOBSL_BUILD_RUNTIME=OFF
+```
+
 ### Run the Interpreter
 
 ```bash
 ./obsl_runtime
 ```
+
+> Only available when `OBSL_BUILD_RUNTIME` is `ON` (the default).
 
 ---
 
@@ -290,7 +302,7 @@ array
 object
 ```
 
-> **Note**: These are the type names accepted by `is`, which are distinct from the strings returned by the reflection function `type_of()` — most notably, `is` uses `function`/`fn` where `type_of()` returns `"callable"`. See the [Standard Library Reference](docs/STANDARD_LIBRARY.md#type_ofvalue) for `type_of()`'s exact return values.
+> **Note**: These are the type names accepted by `is`, which are distinct from the strings returned by the reflection function `type_of()`   most notably, `is` uses `function`/`fn` where `type_of()` returns `"callable"`. See the [Standard Library Reference](docs/STANDARD_LIBRARY.md#type_ofvalue) for `type_of()`'s exact return values.
 
 ### Expressions
 
