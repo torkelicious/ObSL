@@ -4,7 +4,7 @@
 #include <thread>
 #include <vector>
 
-#include <ScriptWorker.h>
+#include <ObSL/ScriptWorker.h>
 
 namespace ObSL {
     class ScriptRuntime {

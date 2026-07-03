@@ -12,8 +12,8 @@
 #include <format>
 #include <variant>
 
-#include <Tokens.h>
-#include <Parser/ast.h>
+#include <ObSL/Tokens.h>
+#include <ObSL/Parser/ast.h>
 
 namespace ObSL {
     class Interpreter;

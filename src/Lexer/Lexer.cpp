@@ -1,8 +1,8 @@
-#include <Lexer.h>
+#include <ObSL/Lexer.h>
 #include <cctype>
 #include <unordered_map>
 #include <format>
-#include <Natives.h>
+#include <ObSL/Natives.h>
 
 namespace ObSL {
     Lexer::Lexer(const std::string_view source) : source(source) {

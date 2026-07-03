@@ -15,8 +15,8 @@
 #include <thread>
 #include <format>
 #include <regex>
-#include <Interpreter.h>
-#include <StdLib.h>
+#include <ObSL/Interpreter.h>
+#include <ObSL/StdLib.h>
 
 namespace ObSL {
     // CONVERSION LIBRARY

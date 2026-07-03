@@ -10,10 +10,10 @@
 #include <utility>
 #include <vector>
 
-#include <GarbageCollector.h>
-#include <Environment.h>
-#include <Natives.h>
-#include <StdLib.h>
+#include <ObSL/GarbageCollector.h>
+#include <ObSL/Environment.h>
+#include <ObSL/Natives.h>
+#include <ObSL/StdLib.h>
 
 namespace ObSL {
     class Interpreter {

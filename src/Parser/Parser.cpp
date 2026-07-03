@@ -1,9 +1,9 @@
-#include <Parser.h>
-#include <Interpreter.h>
+#include <ObSL/Parser.h>
+#include <ObSL/Interpreter.h>
 #include <charconv>
 #include <format>
 
-#include <Tokens.h>
+#include <ObSL/Tokens.h>
 
 namespace ObSL {
     Parser::Parser(std::vector<Token> tokens) : tokens(std::move(tokens)) {

@@ -1,4 +1,4 @@
-#include <Interpreter.h>
+#include <ObSL/Interpreter.h>
 #include <cmath>
 #include <filesystem>
 #include <format>
@@ -11,7 +11,7 @@
 #include <type_traits>
 #include <unordered_set>
 
-#include <Parser.h>
+#include <ObSL/Parser.h>
 
 using namespace std::string_view_literals;
 

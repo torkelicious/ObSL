@@ -1,8 +1,8 @@
-#include <ScriptEntry.h>
-#include <Parser.h>
-#include <Lexer.h>
-#include <Interpreter.h>
-#include <Natives.h>
+#include <ObSL/ScriptEntry.h>
+#include <ObSL/Parser.h>
+#include <ObSL/Lexer.h>
+#include <ObSL/Interpreter.h>
+#include <ObSL/Natives.h>
 #include <chrono>
 #include <iostream>
 #include <fstream>

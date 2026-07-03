@@ -1,4 +1,4 @@
-#include <ScriptWorker.h>
+#include <ObSL/ScriptWorker.h>
 
 namespace ObSL {
     ScriptWorker::ScriptWorker()

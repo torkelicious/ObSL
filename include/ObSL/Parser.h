@@ -4,8 +4,8 @@
 #include <memory>
 #include <initializer_list>
 #include <string_view>
-#include <Parser/ast.h>
-#include <Lexer.h>
+#include <ObSL/Parser/ast.h>
+#include <ObSL/Lexer.h>
 
 namespace ObSL {
     class Parser {

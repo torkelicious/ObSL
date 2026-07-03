@@ -1,6 +1,6 @@
-#include <GarbageCollector.h>
-#include <Interpreter.h>
-#include <Parser/ast.h>
+#include <ObSL/GarbageCollector.h>
+#include <ObSL/Interpreter.h>
+#include <ObSL/Parser/ast.h>
 
 namespace ObSL {
     void mark_value(const Value &val) {

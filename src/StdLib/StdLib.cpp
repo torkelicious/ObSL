@@ -1,6 +1,6 @@
-#include <StdLib.h>
+#include <ObSL/StdLib.h>
 #include <StdLib/StdModules.h>
-#include <Interpreter.h>
+#include <ObSL/Interpreter.h>
 #include <stdexcept>
 
 namespace ObSL {

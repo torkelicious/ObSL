@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Interpreter.h>
+#include <ObSL/Interpreter.h>
 
 namespace ObSL {
     class ScriptEntry {

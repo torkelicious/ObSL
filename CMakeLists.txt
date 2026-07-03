@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 4.2)
 project(obsl)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+option(OBSL_BUILD_RUNTIME "Build the ObSL runtime executable" ON)
 
 include(FetchContent)
 
@@ -28,24 +31,19 @@ add_library(obsl STATIC
 
 target_include_directories(obsl
         PUBLIC
-        include
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
         PRIVATE
-        src
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
-
 
 target_link_libraries(obsl
         PRIVATE
         nlohmann_json::nlohmann_json
 )
 
-add_executable(obsl_runtime
-        src/ObSLCoreMain.cpp
-)
-
-target_include_directories(obsl_runtime
-        PRIVATE
-        src
-)
-
-target_link_libraries(obsl_runtime PRIVATE obsl)
+if (OBSL_BUILD_RUNTIME)
+    add_executable(obsl_runtime
+            src/ObSLCoreMain.cpp
+    )
+    target_link_libraries(obsl_runtime PRIVATE obsl)
+endif ()
