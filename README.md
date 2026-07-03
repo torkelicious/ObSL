@@ -671,3 +671,8 @@ ObSL includes automatic garbage collection with cyclic reference handling.
 # Examples
 
 See the `Examples/` directory for additional runnable usage examples.
+
+---
+### todo: 
+- Linter
+- Lsp ?
