@@ -264,7 +264,7 @@ object
 ```
 
 > **Note**: These are the type names accepted by `is`, which are distinct from the strings returned by the reflection
-> function `type_of()` — most notably, `is` uses `function`/`fn` where `type_of()` returns `"callable"`. See
+> function `type_of()` , most notably, `is` uses `function`/`fn` where `type_of()` returns `"callable"`. See
 > the [Standard Library Reference](docs/STANDARD_LIBRARY.md#type_ofvalue) for `type_of()`'s exact return values.
 
 ### Expressions
