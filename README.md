@@ -695,3 +695,7 @@ ObSL's design and implementation were informed by:
 | Library | License | Purpose | More |
 |---|---|---|---|
 | [nlohmann/json](https://github.com/nlohmann/json) v3.12.0 | MIT | JSON output for `--lint` mode | [docs/THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) |
+
+# License
+ 
+ObSL is licensed under the [MIT License](LICENSE). See third-party dependency licenses in [THIRD_PARTY_LICENSES.md](docs/THIRD_PARTY_LICENSES.md).
