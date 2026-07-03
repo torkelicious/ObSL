@@ -1,12 +1,15 @@
-### *Work in progress README Draft.*
-
----
-
 # The Obliberry Scripting Language
 
 ObSL is a small interpreted, thread safe, dynamically typed programming language designed for game logic inside
 the [Obliberry Game
 Engine](https://github.com/torkelicious/obliberry) made to be easily extendable.
+
+---
+
+## Documentation
+
+- [Architecture Overview](docs/ARCHITECTURE.md)
+- [Standard Library Reference](docs/STANDARD_LIBRARY.md)
 
 ---
 
@@ -23,6 +26,38 @@ Engine](https://github.com/torkelicious/obliberry) made to be easily extendable.
 - Runtime reflection
 - Built-in regex support
 - Automatic garbage collection with cyclic reference handling
+
+---
+
+## Building from Source
+
+### Prerequisites
+
+- C++20 compiler (GCC, Clang, MSVC)
+- CMake
+- Git
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/torkelicious/ObSL.git
+cd ObSL
+```
+
+### Build the Project
+
+```bash
+mkdir build
+cd build
+cmake ..
+cmake --build .
+```
+
+### Run the Interpreter
+
+```bash
+./obsl_runtime
+```
 
 ---
 
@@ -227,6 +262,10 @@ function / fn
 array
 object
 ```
+
+> **Note**: These are the type names accepted by `is`, which are distinct from the strings returned by the reflection
+> function `type_of()` — most notably, `is` uses `function`/`fn` where `type_of()` returns `"callable"`. See
+> the [Standard Library Reference](docs/STANDARD_LIBRARY.md#type_ofvalue) for `type_of()`'s exact return values.
 
 ### Expressions
 
@@ -499,6 +538,7 @@ floor(x);
 ceil(x);
 round(x);
 random();
+clamp(value, min, max);
 ```
 
 ### Trigonometry
@@ -573,6 +613,18 @@ clock();
 sleep_thread(seconds);
 ```
 
+### Environment
+
+```obsl
+get_env(name);
+```
+
+### Process
+
+```obsl
+exit(code);
+```
+
 ---
 
 # Reflection
@@ -613,3 +665,9 @@ get_fields(object);
 # Garbage Collection
 
 ObSL includes automatic garbage collection with cyclic reference handling.
+
+---
+
+# Examples
+
+See the `Examples/` directory for additional runnable usage examples.
