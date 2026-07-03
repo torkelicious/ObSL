@@ -6,6 +6,33 @@ Engine](https://github.com/torkelicious/obliberry) made to be easily extendable.
 
 ---
 
+## Contents
+
+- [Documentation](#documentation)
+- [Features](#features)
+- [Building from Source](#building-from-source)
+- [Quick Start](#quick-start)
+- [Language Basics](#language-basics)
+- [Printing](#printing)
+- [Operators](#operators)
+- [Control Flow](#control-flow)
+- [Loops](#loops)
+- [Arrays](#arrays)
+- [Functions](#functions)
+- [Structs](#structs)
+- [Objects](#objects)
+- [Modules](#modules)
+- [Error Handling](#error-handling)
+- [Built-in Library](#built-in-library)
+- [Reflection](#reflection)
+- [Garbage Collection](#garbage-collection)
+- [Examples](#examples)
+- [Todo](#todo)
+- [Resources & Acknowledgments](#resources--acknowledgments)
+- [License](#license)
+
+---
+
 ## Documentation
 
 - [Architecture Overview](docs/ARCHITECTURE.md)
@@ -694,7 +721,7 @@ ObSL's design and implementation were informed by:
 
 | Library | License | Purpose | More |
 |---|---|---|---|
-| [nlohmann/json](https://github.com/nlohmann/json) v3.12.0 | MIT | JSON output for `--lint` mode | [docs/THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) |
+| [nlohmann/json](https://github.com/nlohmann/json) v3.12.0 | MIT | JSON output for `--lint` mode | [docs/THIRD_PARTY_LICENSES.md](docs/THIRD_PARTY_LICENSES.md) |
 
 # License
  
