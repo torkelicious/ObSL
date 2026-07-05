@@ -16,6 +16,11 @@ graph TD
     H --> I[Native Functions]
     E --> J[Environment]
     J --> K[Variables & Scopes]
+
+    D --> L[AST Serializer]
+    L --> M[Binary Blob]
+    M --> N[AST Deserializer]
+    N --> D
 ```
 
 ## Lexer
@@ -77,6 +82,68 @@ The AST is composed of statements and expressions:
 - `GroupingExpr` - parentheses grouping
 - `AssignmentExpr` - assignment
 - `UpdateExpr` - increment/decrement
+
+## AST Serialization
+
+**Location**: `include/ASTSerializer.h`, `src/ASTSerializer.cpp`, `include/ASTDeserializer.h`, `src/ASTDeserializer.cpp`
+
+The AST can be serialized to a compact binary format and deserialized back. This enables pre-parsing scripts during a "build" step (e.g. into `.obpak` archives) and executing them later without re-parsing the source code.
+
+### SerializedModule
+
+The top-level container for a deserialized AST:
+
+```cpp
+struct SerializedModule {
+    std::vector<std::string> string_pool;
+    std::vector<std::unique_ptr<Stmt> > statements;
+};
+```
+
+### Binary Format
+
+The serialized binary layout consists of three sections:
+
+1. **String Table** — A deduplicated pool of all string literals, identifiers, and lexemes used in the AST. Each string is stored as `[length: uint32_t][chars...]`.
+2. **Statement Count** — The number of root-level statements (`uint32_t`).
+3. **Node Payload** — The serialized AST nodes, written depth-first.
+
+### ASTSerializer
+
+Walks the AST depth-first and writes each node into a flat `std::vector<uint8_t>` buffer. Nodes are identified by a type tag (`ExprType` / `StmtType`), followed by their fields in a fixed order. Null pointers (e.g. optional sub-expressions) are encoded as `0xFF`.
+
+Key methods:
+- `serialize_expr(const Expr*)` — serializes an expression node
+- `serialize_stmt(const Stmt*)` — serializes a statement node
+- `finalize(root_ast)` — builds the string table, assembles the complete binary blob
+
+Usage:
+
+```cpp
+ObSL::Lexer lexer(source_code);
+auto tokens = lexer.tokenize();
+ObSL::Parser parser(std::move(tokens));
+auto ast = parser.parse();
+
+ObSL::ASTSerializer serializer;
+std::vector<uint8_t> binary_blob = serializer.finalize(ast);
+```
+
+### ASTDeserializer
+
+Reconstructs the AST from a binary blob produced by `ASTSerializer`. The static `deserialize()` method is the main entry point:
+
+```cpp
+auto [string_pool, statements] = ObSL::ASTDeserializer::deserialize(binary_blob);
+```
+
+It reconstructs the string table, then reads nodes sequentially from the payload section, rebuilding `std::unique_ptr<Stmt>` and `std::unique_ptr<Expr>` trees that can be passed directly to the interpreter or runtime.
+
+### Limitations
+
+- Runtime pointer types (`ObSLCallable*`, `ObSLArray*`, `ObSLObject*`) cannot be persisted. They are serialized as `std::monostate` and reconstructed as `null`.
+- The format is not self-describing — serializer and deserializer must be in sync regarding node layouts and type tags.
+
 
 ## Interpreter
 

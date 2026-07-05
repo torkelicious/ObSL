@@ -12,6 +12,7 @@
 #include <unordered_set>
 
 #include <ObSL/Parser.h>
+#include <ObSL/ModulePath.h>
 
 using namespace std::string_view_literals;
 
@@ -474,24 +475,27 @@ namespace ObSL {
     }
 
     ModuleLoader Interpreter::createDefaultModuleLoader() {
-        return [](const std::string &path) -> std::optional<std::string> {
+        return [](const std::string &path) -> std::optional<ModuleResult> {
             std::ifstream file(path);
             if (!file.is_open()) return std::nullopt;
             std::stringstream buffer;
             buffer << file.rdbuf();
-            return buffer.str();
+            ModuleResult r;
+            r.kind = ModuleResult::Kind::Source;
+            r.source = buffer.str();
+            return r;
         };
     }
 
-    std::string Interpreter::canonicalize_module_path(const std::string &rawpath) const {
-        namespace fs = std::filesystem;
-        const fs::path path = m_script_root / rawpath;
-        return path.lexically_normal().generic_string();
-    }
+    //std::string Interpreter::canonicalize_module_path(const std::string &rawpath) const {
+    //    namespace fs = std::filesystem;
+    //    const fs::path path = m_script_root / rawpath;
+    //    return path.lexically_normal().generic_string();
+    //}
 
     void Interpreter::execute_using_stmt(const UsingStmt *stmt) {
         std::unique_lock lock(m_modules_mutex);
-        std::string canonical_path = canonicalize_module_path(stmt->path);
+        std::string canonical_path = ObSL::canonicalize_module_path(m_script_root, stmt->path);
         std::string module_name = std::filesystem::path(canonical_path).stem().string();
 
         if (auto it = loaded_modules.find(canonical_path); it != loaded_modules.end()) {
@@ -505,20 +509,28 @@ namespace ObSL {
 
         loaded_modules[canonical_path] = nullptr;
 
-        auto source_opt = m_module_loader(canonical_path);
-        if (!source_opt.has_value()) {
+        auto result = m_module_loader(canonical_path);
+        if (!result.has_value()) {
             loaded_modules.erase(canonical_path);
             throw RuntimeError(stmt->keyword,
                                std::format("Could not resolve module '{}'.", canonical_path));
         }
 
-        module_sources.push_back(std::move(*source_opt));
-        Lexer lexer(module_sources.back());
-        auto tokens = lexer.tokenize();
-        Parser parser(tokens);
+        const std::vector<std::unique_ptr<Stmt> > *statements_ptr = nullptr;
 
-        module_asts.push_back(parser.parse());
-        const auto &statements = module_asts.back();
+        if (result->kind == ModuleResult::Kind::Source) {
+            module_sources.push_back(std::move(result->source));
+            Lexer lexer(module_sources.back());
+            auto tokens = lexer.tokenize();
+            Parser parser(tokens);
+            module_asts.push_back(parser.parse());
+            statements_ptr = &module_asts.back();
+        } else {
+            module_ast_blobs.push_back(std::move(result->ast_module));
+            statements_ptr = &module_ast_blobs.back().statements;
+        }
+
+        const auto &statements = *statements_ptr;
 
         auto *module_obj = gc.allocate<ObSLObject>();
         GCProtectScope scope(this);

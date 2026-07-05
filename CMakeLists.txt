@@ -27,6 +27,8 @@ add_library(obsl STATIC
         src/GarbageCollector.cpp
         src/ScriptWorker.cpp
         src/ScriptRuntime.cpp
+        src/ASTSerializer.cpp
+        src/ASTDeserializer.cpp
 )
 
 target_include_directories(obsl

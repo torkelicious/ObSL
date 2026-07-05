@@ -17,9 +17,17 @@
 #include <ObSL/Environment.h>
 #include <ObSL/Natives.h>
 #include <ObSL/StdLib.h>
+#include <ObSL/ASTSerializer.h>
 
 namespace ObSL {
-    using ModuleLoader = std::function<std::optional<std::string>(const std::string &canonical_path)>;
+    struct ModuleResult {
+        enum class Kind { Source, PrecompiledAst } kind;
+
+        std::string source;
+        SerializedModule ast_module;
+    };
+
+    using ModuleLoader = std::function<std::optional<ModuleResult>(const std::string &)>;
 
     class Interpreter {
     public:
@@ -131,6 +139,7 @@ namespace ObSL {
 
         std::filesystem::path m_script_root;
         ModuleLoader m_module_loader = createDefaultModuleLoader();
+        std::vector<SerializedModule> module_ast_blobs;
 
         // Stream wrappers must be declared first to ensure they are fully initialized
         // before other members that might use them during construction (e.g., StdLib).
@@ -216,7 +225,7 @@ namespace ObSL {
 
         static ModuleLoader createDefaultModuleLoader();
 
-        std::string canonicalize_module_path(const std::string &rawpath) const;
+        //std::string canonicalize_module_path(const std::string &rawpath) const;
 
         void execute_using_stmt(const UsingStmt *stmt);
 
