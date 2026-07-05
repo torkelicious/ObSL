@@ -1,8 +1,11 @@
 #pragma once
 
+#include <filesystem>
+#include <functional>
 #include <iostream>
 #include <istream>
 #include <memory>
+#include <optional>
 #include <shared_mutex>
 #include <mutex>
 #include <span>
@@ -16,6 +19,8 @@
 #include <ObSL/StdLib.h>
 
 namespace ObSL {
+    using ModuleLoader = std::function<std::optional<std::string>(const std::string &canonical_path)>;
+
     class Interpreter {
     public:
         GarbageCollector gc{this};
@@ -23,7 +28,10 @@ namespace ObSL {
 
         void *user_data = nullptr;
 
-        explicit Interpreter(std::ostream &out = std::cout, std::istream &in = std::cin) : m_stdout(out), m_stdin(in) {
+        explicit Interpreter(const std::string &scriptrootpath = std::filesystem::current_path().generic_string(),
+                             std::ostream &out = std::cout, std::istream &in = std::cin)
+            : m_script_root(scriptrootpath),
+              m_stdout(out), m_stdin(in) {
             globals = std::make_shared<Environment>();
             register_environment(globals);
             environment = globals;
@@ -65,6 +73,17 @@ namespace ObSL {
 
         std::istream &Get_Stdin() const { return m_stdin.get(); }
         std::ostream &Get_Stdout() const { return m_stdout.get(); }
+
+        void set_script_root(const std::string &path) {
+            m_script_root = path;
+        }
+
+        void set_module_loader(ModuleLoader loader) { m_module_loader = std::move(loader); }
+
+        [[nodiscard]] const std::filesystem::path &get_script_root() const {
+            return m_script_root;
+        }
+
 
         [[nodiscard]] std::shared_ptr<Environment> get_current_environment() const {
             std::unique_lock lock(m_interpreter_mutex);
@@ -109,6 +128,9 @@ namespace ObSL {
 
         mutable std::recursive_mutex m_interpreter_mutex;
         mutable std::shared_mutex m_modules_mutex;
+
+        std::filesystem::path m_script_root;
+        ModuleLoader m_module_loader = createDefaultModuleLoader();
 
         // Stream wrappers must be declared first to ensure they are fully initialized
         // before other members that might use them during construction (e.g., StdLib).
@@ -192,6 +214,10 @@ namespace ObSL {
 
         static bool is_equal(const Value &a, const Value &b);
 
+        static ModuleLoader createDefaultModuleLoader();
+
+        std::string canonicalize_module_path(const std::string &rawpath) const;
+
         void execute_using_stmt(const UsingStmt *stmt);
 
         void execute_try_catch_stmt(const TryCatchStmt *stmt);
@@ -250,7 +276,7 @@ namespace ObSL {
     template<typename F>
     void Interpreter::define_native(std::string name, F &&body) {
         using DecayedF = std::decay_t<F>;
-        if constexpr (std::is_pointer_v<DecayedF> &&std::is_function_v<std::remove_pointer_t<DecayedF> >) {
+        if constexpr (std::is_pointer_v<DecayedF> && std::is_function_v<std::remove_pointer_t<DecayedF> >) {
             using Traits = native_fn_traits<DecayedF>;
             auto wrapped = [body = std::forward<F>(body)](Interpreter *, const std::vector<Value> &args) -> Value {
                 return call_native_helper<DecayedF, Traits>(body, args, std::make_index_sequence<Traits::arity>{});

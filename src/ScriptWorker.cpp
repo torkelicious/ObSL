@@ -1,10 +1,12 @@
 #include <ObSL/ScriptWorker.h>
 
 namespace ObSL {
-    ScriptWorker::ScriptWorker()
-        : m_Globals(m_Interpreter.get_global_environment()) {
+    ScriptWorker::ScriptWorker(const std::string &scriptroot)
+        : m_Interpreter(scriptroot),
+          m_Globals(m_Interpreter.get_global_environment()) {
         m_Interpreter.user_data = this;
     }
+
 
     void ScriptWorker::execute(const std::vector<std::unique_ptr<Stmt> > &ast, std::shared_ptr<Environment> env) {
         auto prev = m_Interpreter.get_current_environment();

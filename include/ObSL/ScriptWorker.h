@@ -5,7 +5,7 @@
 namespace ObSL {
     class ScriptWorker {
     public:
-        ScriptWorker();
+        ScriptWorker(const std::string &scriptroot);
 
         Interpreter &GetInterpreter() { return m_Interpreter; }
         const Interpreter &GetInterpreter() const { return m_Interpreter; }

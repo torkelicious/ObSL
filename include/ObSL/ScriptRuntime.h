@@ -9,7 +9,8 @@
 namespace ObSL {
     class ScriptRuntime {
     public:
-        void init(size_t worker_count = [] {
+
+        void init(const std::string &script_root, size_t worker_count = [] {
             const auto hw = std::thread::hardware_concurrency();
             return std::max<size_t>(1, hw > 2 ? hw - 2u : 1u);
         }());
@@ -20,6 +21,8 @@ namespace ObSL {
         [[nodiscard]] size_t worker_count() const { return m_Workers.size(); }
 
         void set_stdout(std::ostream &out) const;
+
+        void set_script_root(const std::string &path) const;
 
     private:
         std::vector<std::unique_ptr<ScriptWorker> > m_Workers;

@@ -418,10 +418,11 @@ namespace ObSL {
     // Statements
 
     struct UsingStmt : public Stmt {
+        Token keyword;
         std::string path;
 
-        UsingStmt(const Token &/*keyword*/, std::string path)
-            : path(std::move(path)) {
+        UsingStmt(Token keyword, std::string path)
+            : keyword(std::move(keyword)), path(std::move(path)) {
         }
 
         [[nodiscard]] StmtType type() const noexcept override { return StmtType::Using; }
@@ -430,6 +431,7 @@ namespace ObSL {
             return std::format("[UsingStmt: {}]\n", path);
         }
     };
+
 
     struct ExpressionStmt : public Stmt {
         std::unique_ptr<Expr> expression;

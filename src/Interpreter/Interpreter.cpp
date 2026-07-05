@@ -473,25 +473,48 @@ namespace ObSL {
             a, b);
     }
 
+    ModuleLoader Interpreter::createDefaultModuleLoader() {
+        return [](const std::string &path) -> std::optional<std::string> {
+            std::ifstream file(path);
+            if (!file.is_open()) return std::nullopt;
+            std::stringstream buffer;
+            buffer << file.rdbuf();
+            return buffer.str();
+        };
+    }
+
+    std::string Interpreter::canonicalize_module_path(const std::string &rawpath) const {
+        namespace fs = std::filesystem;
+        const fs::path path = m_script_root / rawpath;
+        return path.lexically_normal().generic_string();
+    }
+
     void Interpreter::execute_using_stmt(const UsingStmt *stmt) {
         std::unique_lock lock(m_modules_mutex);
-        std::string module_name = std::filesystem::path(stmt->path).stem().string();
-        if (loaded_modules.contains(stmt->path)) {
-            environment->define(module_name, loaded_modules[stmt->path]);
+        std::string canonical_path = canonicalize_module_path(stmt->path);
+        std::string module_name = std::filesystem::path(canonical_path).stem().string();
+
+        if (auto it = loaded_modules.find(canonical_path); it != loaded_modules.end()) {
+            if (it->second == nullptr) {
+                throw RuntimeError(stmt->keyword,
+                                   std::format("Circular import detected: '{}'", canonical_path));
+            }
+            environment->define(module_name, it->second);
             return;
         }
-        std::ifstream file(stmt->path);
-        if (!file.is_open())
-            throw RuntimeError(Token{TokenType::UNKNOWN, "using", 0, 0, 0, 0},
-                               std::format("Could not open module '{}'.", stmt->path));
 
-        std::stringstream buffer;
-        buffer << file.rdbuf();
+        loaded_modules[canonical_path] = nullptr;
 
-        module_sources.push_back(buffer.str());
+        auto source_opt = m_module_loader(canonical_path);
+        if (!source_opt.has_value()) {
+            loaded_modules.erase(canonical_path);
+            throw RuntimeError(stmt->keyword,
+                               std::format("Could not resolve module '{}'.", canonical_path));
+        }
+
+        module_sources.push_back(std::move(*source_opt));
         Lexer lexer(module_sources.back());
         auto tokens = lexer.tokenize();
-
         Parser parser(tokens);
 
         module_asts.push_back(parser.parse());
@@ -505,6 +528,10 @@ namespace ObSL {
         register_environment(module_env);
         auto previous_env = environment;
 
+        // release the module mutex during execution so that recursive `using`
+        // calls  don't deadlock.
+        lock.unlock();
+
         try {
             environment = module_env;
             for (const auto &module_stmt: statements | std::views::filter([](auto &s) {
@@ -512,17 +539,19 @@ namespace ObSL {
             })) {
                 execute(module_stmt.get());
             }
-
             for (const auto &[name, val]: module_env->get_values()) {
                 module_obj->fields[name] = val;
             }
             environment = previous_env;
         } catch (...) {
             environment = previous_env;
+            lock.lock();
+            loaded_modules.erase(canonical_path); // failed load cleanup
             throw;
         }
 
-        loaded_modules[stmt->path] = module_obj;
+        lock.lock();
+        loaded_modules[canonical_path] = module_obj;
         environment->define(module_name, module_obj);
 
         if (loaded_modules.size() > max_loaded_modules) {
@@ -534,6 +563,7 @@ namespace ObSL {
             }
         }
     }
+
 
     void Interpreter::execute_try_catch_stmt(const TryCatchStmt *stmt) {
         try {
