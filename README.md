@@ -524,6 +524,15 @@ obj.printValue = printValue;
 using "assets/scripts/module.obsl";
 ```
 
+Module paths are resolved relative to the **script root** (defaults to the current working directory).
+
+Features:
+
+- **Caching**: Modules are loaded once and cached   subsequent `using` calls return the same module object.
+- **Circular detection**: Circular imports are detected and reported as errors.
+- **Recursive imports**: Recursive `using` calls are supported without deadlocking.
+- **Custom loading** (embedding API): Host applications can provide a custom `ModuleLoader` to load modules from arbitrary sources (e.g. virtual filesystems or archives).
+
 ---
 
 # Error Handling

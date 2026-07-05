@@ -168,7 +168,7 @@ ObSL supports multi-threaded execution:
 
 ## Module System
 
-**Location**: `src/Parser/Parser.cpp` (using statement)
+**Location**: `include/ObSL/Interpreter.h`, `src/Interpreter/Interpreter.cpp`
 
 Modules are imported using the `using` statement:
 
@@ -176,10 +176,36 @@ Modules are imported using the `using` statement:
 using "path/to/module.obsl";
 ```
 
-Module features:
-- **Caching**: Modules are loaded once and cached
-- **Isolation**: Each module gets its own environment
-- **Re-export**: Module variables are available in the importing scope
+### Path Resolution
+
+Module paths are **resolved relative to the script root** , a configurable base directory that defaults to the current working directory. Paths are canonicalized (normalized) before use, so `"../dir/./module.obsl"` becomes a clean, predictable key for caching and error reporting.
+
+### Module Loader
+
+Instead of reading files directly, the interpreter delegates file access to a **`ModuleLoader`** callback:
+
+```cpp
+using ModuleLoader = std::function<
+    std::optional<std::string>(const std::string &canonical_path)
+>;
+```
+
+The default loader simply reads from the filesystem, but host applications embedding ObSL can override it via `interpreter.set_module_loader(...)` to load modules from virtual filesystems, archives, or network sources.
+
+### Circular Import Detection
+
+If a module attempts to `using` itself (directly or transitively), the interpreter detects the cycle and throws a `RuntimeError` message, preventing infinite recursion or deadlock.
+
+### Deadlock Prevention
+
+The module mutex is released during module execution. This allows recursive `using` calls.
+
+### Lifecycle
+
+- **Caching**: Modules are loaded once and cached by their canonical path. Subsequent `using` calls return the same module object.
+- **Isolation**: Each module gets its own environment, preventing accidental cross-module pollution.
+- **Re-export**: Module variables are copied into an `ObSLObject` that is bound in the importing scope.
+- **Failed Load Cleanup**: If module execution throws, the partially-constructed module entry is removed from the cache, so a retry can attempt loading again.
 
 ## Error Handling
 
