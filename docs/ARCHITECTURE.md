@@ -235,7 +235,7 @@ ObSL supports multi-threaded execution:
 
 ## Module System
 
-**Location**: `include/ObSL/Interpreter.h`, `src/Interpreter/Interpreter.cpp`
+**Location**: `include/ObSL/Interpreter.h`, `src/Interpreter/Interpreter.cpp`, `include/ObSL/ModulePath.h`
 
 Modules are imported using the `using` statement:
 
@@ -249,15 +249,25 @@ Module paths are **resolved relative to the script root** , a configurable base 
 
 ### Module Loader
 
-Instead of reading files directly, the interpreter delegates file access to a **`ModuleLoader`** callback:
+Instead of reading files directly, the interpreter delegates module resolution to a **`ModuleLoader`** callback:
 
 ```cpp
+struct ModuleResult {
+    enum class Kind { Source, PrecompiledAst } kind;
+    std::string source;
+    SerializedModule ast_module;
+};
+
 using ModuleLoader = std::function<
-    std::optional<std::string>(const std::string &canonical_path)
+    std::optional<ModuleResult>(const std::string &canonical_path)
 >;
 ```
 
-The default loader simply reads from the filesystem, but host applications embedding ObSL can override it via `interpreter.set_module_loader(...)` to load modules from virtual filesystems, archives, or network sources.
+The loader can return either:
+- **`Source`**: Plain source code, which will be lexed and parsed as normal.
+- **`PrecompiledAst`**: A pre-built `SerializedModule` (see [AST Serialization](#ast-serialization)), loaded directly without re-parsing. This is useful for shipping pre-compiled scripts or loading from `.obpak` archives.
+
+The default loader simply reads from the filesystem and returns `Source`, but host applications embedding ObSL can override it via `interpreter.set_module_loader(...)` to load modules from virtual filesystems, archives, or network sources.
 
 ### Circular Import Detection
 
