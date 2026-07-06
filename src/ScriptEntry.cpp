@@ -33,11 +33,8 @@ namespace ObSL {
             if (file_path.empty()) {
                 nlohmann::json output;
                 output["status"] = "error";
-                output["errors"].push_back({
-                    {"line", 1},
-                    {"column", 1},
-                    {"message", "No input file specified for linting."}
-                });
+                output["errors"].push_back(
+                        {{"line", 1}, {"column", 1}, {"message", "No input file specified for linting."}});
                 std::cout << output.dump() << std::endl;
                 return 64;
             }
@@ -68,7 +65,8 @@ namespace ObSL {
         std::string line;
         std::cout << "ObSL REPL (type 'exit' to quit)\n> ";
         while (std::getline(std::cin, line)) {
-            if (line == "exit") break;
+            if (line == "exit")
+                break;
 
             if (!line.empty()) {
                 run(line, true);
@@ -113,11 +111,7 @@ namespace ObSL {
         std::ifstream file(path);
         if (!file.is_open()) {
             output["status"] = "error";
-            output["errors"].push_back({
-                {"line", 1},
-                {"column", 1},
-                {"message", "Could not open file: " + path}
-            });
+            output["errors"].push_back({{"line", 1}, {"column", 1}, {"message", "Could not open file: " + path}});
             std::cout << output.dump() << std::endl;
             return;
         }
@@ -140,14 +134,10 @@ namespace ObSL {
 
             size_t report_line = e.token.line;
             size_t report_col = e.token.column;
-            output["errors"].push_back({
-                {"line", report_line},
-                {"column", report_col},
-                {"message", e.what()}
-            });
+            output["errors"].push_back({{"line", report_line}, {"column", report_col}, {"message", e.what()}});
         }
 
         // dump the JSON to stdout
         std::cout << output.dump() << std::endl;
     }
-}
+} // namespace ObSL

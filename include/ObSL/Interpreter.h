@@ -38,8 +38,7 @@ namespace ObSL {
 
         explicit Interpreter(const std::string &scriptrootpath = std::filesystem::current_path().generic_string(),
                              std::ostream &out = std::cout, std::istream &in = std::cin)
-            : m_script_root(scriptrootpath),
-              m_stdout(out), m_stdin(in) {
+            : m_script_root(scriptrootpath), m_stdout(out), m_stdin(in) {
             globals = std::make_shared<Environment>();
             register_environment(globals);
             environment = globals;
@@ -53,7 +52,7 @@ namespace ObSL {
             std::unique_lock lock(m_interpreter_mutex);
             if (globals)
                 globals->clear();
-            for (auto &weak_env: all_environments) {
+            for (auto &weak_env : all_environments) {
                 if (const auto env = weak_env.lock())
                     env->clear();
             }
@@ -67,14 +66,13 @@ namespace ObSL {
             all_environments.push_back(env);
         }
 
-        void interpret(const std::vector<std::unique_ptr<Stmt> > &statements);
+        void interpret(const std::vector<std::unique_ptr<Stmt>> &statements);
 
         void execute_block(std::span<const std::unique_ptr<Stmt>> statements, std::shared_ptr<Environment> block_env);
 
         void define_native(const std::string &name, ObSLCallable *function) const { globals->define(name, function); }
 
-        template<typename F>
-        void define_native(std::string name, F &&body);
+        template <typename F> void define_native(std::string name, F &&body);
 
         void Set_Stdout(std::ostream &out) { m_stdout = std::ref(out); }
         void Set_Stdin(std::istream &in) { m_stdin = std::ref(in); }
@@ -82,15 +80,11 @@ namespace ObSL {
         std::istream &Get_Stdin() const { return m_stdin.get(); }
         std::ostream &Get_Stdout() const { return m_stdout.get(); }
 
-        void set_script_root(const std::string &path) {
-            m_script_root = path;
-        }
+        void set_script_root(const std::string &path) { m_script_root = path; }
 
         void set_module_loader(ModuleLoader loader) { m_module_loader = std::move(loader); }
 
-        [[nodiscard]] const std::filesystem::path &get_script_root() const {
-            return m_script_root;
-        }
+        [[nodiscard]] const std::filesystem::path &get_script_root() const { return m_script_root; }
 
 
         [[nodiscard]] std::shared_ptr<Environment> get_current_environment() const {
@@ -112,16 +106,16 @@ namespace ObSL {
             std::unique_lock lock(m_interpreter_mutex);
             if (globals)
                 globals->mark();
-            for (auto &weak_env: all_environments) {
+            for (auto &weak_env : all_environments) {
                 if (const auto env = weak_env.lock())
                     env->mark();
             }
             if (environment)
                 environment->mark();
-            for (auto &val: gc_protect_stack) {
+            for (auto &val : gc_protect_stack) {
                 mark_value(val);
             }
-            for (const auto &module_obj: loaded_modules | std::views::values) {
+            for (const auto &module_obj : loaded_modules | std::views::values) {
                 if (module_obj)
                     module_obj->mark();
             }
@@ -148,12 +142,12 @@ namespace ObSL {
 
         std::shared_ptr<Environment> globals;
         std::shared_ptr<Environment> environment;
-        std::vector<std::weak_ptr<Environment> > all_environments;
+        std::vector<std::weak_ptr<Environment>> all_environments;
 
         std::unordered_map<std::string, ObSLObject *> loaded_modules;
 
         std::vector<std::string> module_sources;
-        std::vector<std::vector<std::unique_ptr<Stmt> > > module_asts;
+        std::vector<std::vector<std::unique_ptr<Stmt>>> module_asts;
 
         std::size_t m_env_insert_count = 0;
 
@@ -225,7 +219,7 @@ namespace ObSL {
 
         static ModuleLoader createDefaultModuleLoader();
 
-        //std::string canonicalize_module_path(const std::string &rawpath) const;
+        // std::string canonicalize_module_path(const std::string &rawpath) const;
 
         void execute_using_stmt(const UsingStmt *stmt);
 
@@ -238,9 +232,8 @@ namespace ObSL {
         Interpreter *interpreter;
         size_t start_size;
 
-        explicit GCProtectScope(Interpreter *interp) : interpreter(interp),
-                                                       start_size(interp->gc_protect_stack.size()) {
-        }
+        explicit GCProtectScope(Interpreter *interp)
+            : interpreter(interp), start_size(interp->gc_protect_stack.size()) {}
 
         ~GCProtectScope() { interpreter->gc_protect_stack.resize(start_size); }
 
@@ -254,8 +247,7 @@ namespace ObSL {
 
     public:
         ObSLFunction(const FunctionStmt *declaration, std::shared_ptr<Environment> closure)
-            : declaration(declaration), closure(std::move(closure)) {
-        }
+            : declaration(declaration), closure(std::move(closure)) {}
 
         [[nodiscard]] int arity() const override;
 
@@ -282,10 +274,9 @@ namespace ObSL {
         }
     };
 
-    template<typename F>
-    void Interpreter::define_native(std::string name, F &&body) {
+    template <typename F> void Interpreter::define_native(std::string name, F &&body) {
         using DecayedF = std::decay_t<F>;
-        if constexpr (std::is_pointer_v<DecayedF> && std::is_function_v<std::remove_pointer_t<DecayedF> >) {
+        if constexpr (std::is_pointer_v<DecayedF> && std::is_function_v<std::remove_pointer_t<DecayedF>>) {
             using Traits = native_fn_traits<DecayedF>;
             auto wrapped = [body = std::forward<F>(body)](Interpreter *, const std::vector<Value> &args) -> Value {
                 return call_native_helper<DecayedF, Traits>(body, args, std::make_index_sequence<Traits::arity>{});

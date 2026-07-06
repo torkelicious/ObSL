@@ -93,4 +93,4 @@ namespace ObSL {
         uint32_t start_pos;
         uint32_t end_pos;
     };
-}
+} // namespace ObSL

@@ -8,7 +8,7 @@
 namespace ObSL {
     struct SerializedModule {
         std::vector<std::string> string_pool;
-        std::vector<std::unique_ptr<Stmt> > statements;
+        std::vector<std::unique_ptr<Stmt>> statements;
     };
 
 
@@ -28,23 +28,20 @@ namespace ObSL {
             return idx;
         }
 
-        template<typename T>
-        void write(const T &val) {
+        template <typename T> void write(const T &val) {
             const auto *ptr = reinterpret_cast<const uint8_t *>(&val);
             buffer.insert(buffer.end(), ptr, ptr + sizeof(T));
         }
 
-        void write_string_index(const std::string_view str) {
-            write<uint32_t>(get_string_index(str));
-        }
+        void write_string_index(const std::string_view str) { write<uint32_t>(get_string_index(str)); }
 
         void serialize_expr(const Expr *expr);
 
         void serialize_stmt(const Stmt *stmt);
 
-        std::vector<uint8_t> finalize(const std::vector<std::unique_ptr<Stmt> > &root_ast) {
+        std::vector<uint8_t> finalize(const std::vector<std::unique_ptr<Stmt>> &root_ast) {
             // build the node payload block first
-            for (auto &stmt: root_ast) {
+            for (auto &stmt : root_ast) {
                 serialize_stmt(stmt.get());
             }
             std::vector<uint8_t> node_payload = std::move(buffer);
@@ -53,7 +50,7 @@ namespace ObSL {
             // Structure layout layout:
             // [String Table Size] [String 1 Size][Chars...] ... [Statements Count] [Nodes Payload]
             write<uint32_t>(static_cast<uint32_t>(string_table.size()));
-            for (auto str: string_table) {
+            for (auto str : string_table) {
                 write<uint32_t>(static_cast<uint32_t>(str.size()));
                 buffer.insert(buffer.end(), str.begin(), str.end());
             }
@@ -64,4 +61,4 @@ namespace ObSL {
             return std::move(buffer);
         }
     };
-} // ObSL
+} // namespace ObSL

@@ -15,8 +15,7 @@ namespace ObSL {
         const std::vector<std::string> &m_pool;
 
     public:
-        template<typename T>
-        T read() {
+        template <typename T> T read() {
             if (m_ptr + sizeof(T) > m_end) {
                 throw std::runtime_error("Malformed binary AST: Out of bounds read");
             }
@@ -35,8 +34,7 @@ namespace ObSL {
         }
 
         ASTDeserializer(const std::vector<uint8_t> &data, const std::vector<std::string> &pool)
-            : m_ptr(data.data()), m_end(data.data() + data.size()), m_pool(pool) {
-        }
+            : m_ptr(data.data()), m_end(data.data() + data.size()), m_pool(pool) {}
 
         std::unique_ptr<Expr> deserialize_expr();
 

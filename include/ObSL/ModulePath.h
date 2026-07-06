@@ -7,4 +7,4 @@ namespace ObSL {
         std::filesystem::path p = root / raw_path;
         return p.lexically_normal().generic_string();
     }
-}
+} // namespace ObSL

@@ -26,8 +26,7 @@ namespace ObSL {
         std::vector<GCObject *> m_ExternalRoots;
 
     public:
-        explicit GarbageCollector(Interpreter *interpreter) : interpreter(interpreter) {
-        }
+        explicit GarbageCollector(Interpreter *interpreter) : interpreter(interpreter) {}
 
         ~GarbageCollector() {
             const GCObject *obj = first_obj;
@@ -38,8 +37,7 @@ namespace ObSL {
             }
         }
 
-        template<typename T, typename... Args>
-        T *allocate(Args &&... args) {
+        template <typename T, typename... Args> T *allocate(Args &&...args) {
             if (allocated_objs >= gc_threshold) {
                 collect();
             }
@@ -53,11 +51,10 @@ namespace ObSL {
         void collect();
 
         void add_root(GCObject *obj) {
-            if (obj) m_ExternalRoots.push_back(obj);
+            if (obj)
+                m_ExternalRoots.push_back(obj);
         }
 
-        void remove_root(GCObject *obj) {
-            std::erase(m_ExternalRoots, obj);
-        }
+        void remove_root(GCObject *obj) { std::erase(m_ExternalRoots, obj); }
     };
-} // ObSL
+} // namespace ObSL

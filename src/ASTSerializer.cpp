@@ -6,10 +6,10 @@ namespace ObSL {
     static void serialize_token(ASTSerializer &ser, const Token &token) {
         ser.write(token.type); // TokenType (uint8_t)
         ser.write_string_index(token.lexeme);
-        ser.write(token.line); // uint16_t
-        ser.write(token.column); // uint16_t
+        ser.write(token.line);      // uint16_t
+        ser.write(token.column);    // uint16_t
         ser.write(token.start_pos); // uint32_t
-        ser.write(token.end_pos); // uint32_t
+        ser.write(token.end_pos);   // uint32_t
     }
 
     static void serialize_value(ASTSerializer &ser, const Value &value) {
@@ -51,7 +51,7 @@ namespace ObSL {
     static void serialize_case_branch(ASTSerializer &ser, const CaseBranch &branch) {
         ser.serialize_expr(branch.match_value.get());
         ser.write<uint32_t>(static_cast<uint32_t>(branch.statements.size()));
-        for (const auto &stmt: branch.statements) {
+        for (const auto &stmt : branch.statements) {
             ser.serialize_stmt(stmt.get());
         }
     }
@@ -74,7 +74,7 @@ namespace ObSL {
                 serialize_expr(node->callee.get());
                 serialize_token(*this, node->paren);
                 write<uint32_t>(static_cast<uint32_t>(node->arguments.size()));
-                for (const auto &arg: node->arguments) {
+                for (const auto &arg : node->arguments) {
                     serialize_expr(arg.get());
                 }
                 break;
@@ -131,7 +131,7 @@ namespace ObSL {
             case ExprType::Array: {
                 const auto *node = static_cast<const ArrayExpr *>(expr);
                 write<uint32_t>(static_cast<uint32_t>(node->elements.size()));
-                for (const auto &elem: node->elements) {
+                for (const auto &elem : node->elements) {
                     serialize_expr(elem.get());
                 }
                 break;
@@ -208,7 +208,7 @@ namespace ObSL {
             case StmtType::Block: {
                 const auto *node = static_cast<const BlockStmt *>(stmt);
                 write<uint32_t>(static_cast<uint32_t>(node->statements.size()));
-                for (const auto &s: node->statements) {
+                for (const auto &s : node->statements) {
                     serialize_stmt(s.get());
                 }
                 break;
@@ -217,7 +217,7 @@ namespace ObSL {
                 const auto *node = static_cast<const FunctionStmt *>(stmt);
                 write_string_index(node->name);
                 write<uint32_t>(static_cast<uint32_t>(node->params.size()));
-                for (const auto &param: node->params) {
+                for (const auto &param : node->params) {
                     serialize_param(*this, param);
                 }
                 serialize_stmt(node->body.get());
@@ -234,7 +234,7 @@ namespace ObSL {
                 const auto *node = static_cast<const SwitchStmt *>(stmt);
                 serialize_expr(node->condition.get());
                 write<uint32_t>(static_cast<uint32_t>(node->cases.size()));
-                for (const auto &c: node->cases) {
+                for (const auto &c : node->cases) {
                     serialize_case_branch(*this, c);
                 }
                 break;
@@ -278,7 +278,7 @@ namespace ObSL {
                 const auto *node = static_cast<const StructStmt *>(stmt);
                 serialize_token(*this, node->name);
                 write<uint32_t>(static_cast<uint32_t>(node->fields.size()));
-                for (const auto &field: node->fields) {
+                for (const auto &field : node->fields) {
                     serialize_struct_field(*this, field);
                 }
                 break;

@@ -48,7 +48,7 @@ namespace ObSL {
     static CaseBranch deserialize_case_branch(ASTDeserializer &deser) {
         auto match_value = deser.deserialize_expr();
         const uint32_t count = deser.read<uint32_t>();
-        std::vector<std::unique_ptr<Stmt> > statements;
+        std::vector<std::unique_ptr<Stmt>> statements;
         statements.reserve(count);
         for (uint32_t i = 0; i < count; ++i) {
             statements.push_back(deser.deserialize_stmt());
@@ -73,7 +73,7 @@ namespace ObSL {
                 auto callee = deserialize_expr();
                 Token paren = deserialize_token(*this);
                 const uint32_t argc = read<uint32_t>();
-                std::vector<std::unique_ptr<Expr> > args;
+                std::vector<std::unique_ptr<Expr>> args;
                 args.reserve(argc);
                 for (uint32_t i = 0; i < argc; ++i) {
                     args.push_back(deserialize_expr());
@@ -131,7 +131,7 @@ namespace ObSL {
             }
             case ExprType::Array: {
                 const uint32_t count = read<uint32_t>();
-                std::vector<std::unique_ptr<Expr> > elements;
+                std::vector<std::unique_ptr<Expr>> elements;
                 elements.reserve(count);
                 for (uint32_t i = 0; i < count; ++i) {
                     elements.push_back(deserialize_expr());
@@ -149,8 +149,8 @@ namespace ObSL {
                 Token bracket = deserialize_token(*this);
                 auto index = deserialize_expr();
                 auto value = deserialize_expr();
-                return std::make_unique<IndexAssignmentExpr>(
-                    std::move(callee), bracket, std::move(index), std::move(value));
+                return std::make_unique<IndexAssignmentExpr>(std::move(callee), bracket, std::move(index),
+                                                             std::move(value));
             }
             case ExprType::Get: {
                 auto obj = deserialize_expr();
@@ -211,7 +211,7 @@ namespace ObSL {
             }
             case StmtType::Block: {
                 const uint32_t count = read<uint32_t>();
-                std::vector<std::unique_ptr<Stmt> > stmts;
+                std::vector<std::unique_ptr<Stmt>> stmts;
                 stmts.reserve(count);
                 for (uint32_t i = 0; i < count; ++i) {
                     stmts.push_back(deserialize_stmt());
@@ -228,8 +228,7 @@ namespace ObSL {
                 }
                 // FunctionStmt expects the body as BlockStmt so downcast after deserialisation.
                 auto body = deserialize_stmt();
-                auto block_body = std::unique_ptr<BlockStmt>(
-                    static_cast<BlockStmt *>(body.release()));
+                auto block_body = std::unique_ptr<BlockStmt>(static_cast<BlockStmt *>(body.release()));
                 Token dummy_name{};
                 dummy_name.lexeme = name;
                 return std::make_unique<FunctionStmt>(dummy_name, std::move(params), std::move(block_body));
@@ -238,8 +237,7 @@ namespace ObSL {
                 auto condition = deserialize_expr();
                 auto then_branch = deserialize_stmt();
                 auto else_branch = deserialize_stmt();
-                return std::make_unique<IfStmt>(
-                    std::move(condition), std::move(then_branch), std::move(else_branch));
+                return std::make_unique<IfStmt>(std::move(condition), std::move(then_branch), std::move(else_branch));
             }
             case StmtType::Switch: {
                 auto condition = deserialize_expr();
@@ -287,14 +285,11 @@ namespace ObSL {
                 const std::string_view exception_var = read_string_view();
                 auto catch_body = deserialize_stmt();
                 // TryCatchStmt expects BlockStmt for both bodies
-                auto try_block = std::unique_ptr<BlockStmt>(
-                    static_cast<BlockStmt *>(try_body.release()));
-                auto catch_block = std::unique_ptr<BlockStmt>(
-                    static_cast<BlockStmt *>(catch_body.release()));
+                auto try_block = std::unique_ptr<BlockStmt>(static_cast<BlockStmt *>(try_body.release()));
+                auto catch_block = std::unique_ptr<BlockStmt>(static_cast<BlockStmt *>(catch_body.release()));
                 Token dummy_exc{};
                 dummy_exc.lexeme = exception_var;
-                return std::make_unique<TryCatchStmt>(
-                    std::move(try_block), dummy_exc, std::move(catch_block));
+                return std::make_unique<TryCatchStmt>(std::move(try_block), dummy_exc, std::move(catch_block));
             }
             case StmtType::Struct: {
                 Token name = deserialize_token(*this);

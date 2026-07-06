@@ -14,4 +14,4 @@ namespace ObSL {
     public:
         static void register_modules(Interpreter &interpreter);
     };
-} // ObSL
+} // namespace ObSL

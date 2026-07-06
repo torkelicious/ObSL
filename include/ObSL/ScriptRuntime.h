@@ -9,11 +9,11 @@
 namespace ObSL {
     class ScriptRuntime {
     public:
-
-        void init(const std::string &script_root, size_t worker_count = [] {
-            const auto hw = std::thread::hardware_concurrency();
-            return std::max<size_t>(1, hw > 2 ? hw - 2u : 1u);
-        }());
+        void init(
+                const std::string &script_root, size_t worker_count = [] {
+                    const auto hw = std::thread::hardware_concurrency();
+                    return std::max<size_t>(1, hw > 2 ? hw - 2u : 1u);
+                }());
 
         [[nodiscard]] ScriptWorker *get_worker(const size_t index) { return m_Workers[index].get(); }
         [[nodiscard]] const ScriptWorker *get_worker(const size_t index) const { return m_Workers[index].get(); }
@@ -25,6 +25,6 @@ namespace ObSL {
         void set_script_root(const std::string &path) const;
 
     private:
-        std::vector<std::unique_ptr<ScriptWorker> > m_Workers;
+        std::vector<std::unique_ptr<ScriptWorker>> m_Workers;
     };
-} // ObSL
+} // namespace ObSL

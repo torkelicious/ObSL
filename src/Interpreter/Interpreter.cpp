@@ -21,8 +21,7 @@ namespace ObSL {
         std::shared_ptr<Environment> &m_env_ref;
         std::shared_ptr<Environment> m_previous;
 
-        EnvironmentGuard(std::shared_ptr<Environment> &env,
-                         std::shared_ptr<Environment> new_env)
+        EnvironmentGuard(std::shared_ptr<Environment> &env, std::shared_ptr<Environment> new_env)
             : m_env_ref(env), m_previous(env) {
             m_env_ref = std::move(new_env);
         }
@@ -34,11 +33,10 @@ namespace ObSL {
         EnvironmentGuard &operator=(const EnvironmentGuard &) = delete;
     };
 
-    void Interpreter::interpret(
-        const std::vector<std::unique_ptr<Stmt> > &statements) {
+    void Interpreter::interpret(const std::vector<std::unique_ptr<Stmt>> &statements) {
         std::unique_lock lock(m_interpreter_mutex);
         try {
-            for (const auto &stmt: statements) {
+            for (const auto &stmt : statements) {
                 if (stmt)
                     execute(stmt.get());
             }
@@ -106,8 +104,7 @@ namespace ObSL {
             case ExprType::Index:
                 return evaluate_index(static_cast<const IndexExpr *>(expr));
             case ExprType::IndexAssignment:
-                return evaluate_index_assignment(
-                    static_cast<const IndexAssignmentExpr *>(expr));
+                return evaluate_index_assignment(static_cast<const IndexAssignmentExpr *>(expr));
             case ExprType::Logical:
                 return evaluate_logical(static_cast<const LogicalExpr *>(expr));
             case ExprType::TypeCheck:
@@ -137,7 +134,7 @@ namespace ObSL {
 
         std::vector<Value> arguments;
         arguments.reserve(expr->arguments.size());
-        for (const auto &arg: expr->arguments) {
+        for (const auto &arg : expr->arguments) {
             Value val = evaluate(arg.get());
             scope.protect(val);
             arguments.push_back(val);
@@ -150,11 +147,8 @@ namespace ObSL {
         const auto function = std::get<ObSLCallable *>(callee);
         if (arguments.size() < static_cast<size_t>(function->min_arity()) ||
             arguments.size() > static_cast<size_t>(function->arity())) {
-            throw RuntimeError(
-                expr->paren,
-                std::format("Expected between {} and {} arguments but got {}.",
-                            function->min_arity(), function->arity(),
-                            arguments.size()));
+            throw RuntimeError(expr->paren, std::format("Expected between {} and {} arguments but got {}.",
+                                                        function->min_arity(), function->arity(), arguments.size()));
         }
         return function->call(this, arguments, expr->paren);
     }
@@ -166,23 +160,22 @@ namespace ObSL {
     void Interpreter::execute_print_stmt(const PrintStmt *stmt) {
         Value value = evaluate(stmt->expression.get());
         std::visit(
-            [this]<typename T0>(const T0 &arg) {
-                using T = std::decay_t<T0>;
-                if constexpr (std::is_same_v<T, std::monostate>)
-                    m_stdout.get() << "null";
-                else if constexpr (std::is_same_v<T, bool>)
-                    m_stdout.get() << (arg ? "true" : "false");
-                else if constexpr (std::is_same_v<T, double> ||
-                                   std::is_same_v<T, std::string>) {
-                    m_stdout.get() << arg;
-                } else if constexpr (std::is_same_v<T, ObSLCallable *>)
-                    m_stdout.get() << (arg ? arg->to_string() : "null");
-                else if constexpr (std::is_same_v<T, ObSLArray *>)
-                    m_stdout.get() << (arg ? "[Array]" : "null");
-                else if constexpr (std::is_same_v<T, ObSLObject *>)
-                    m_stdout.get() << (arg ? "[Object]" : "null");
-            },
-            value);
+                [this]<typename T0>(const T0 &arg) {
+                    using T = std::decay_t<T0>;
+                    if constexpr (std::is_same_v<T, std::monostate>)
+                        m_stdout.get() << "null";
+                    else if constexpr (std::is_same_v<T, bool>)
+                        m_stdout.get() << (arg ? "true" : "false");
+                    else if constexpr (std::is_same_v<T, double> || std::is_same_v<T, std::string>) {
+                        m_stdout.get() << arg;
+                    } else if constexpr (std::is_same_v<T, ObSLCallable *>)
+                        m_stdout.get() << (arg ? arg->to_string() : "null");
+                    else if constexpr (std::is_same_v<T, ObSLArray *>)
+                        m_stdout.get() << (arg ? "[Array]" : "null");
+                    else if constexpr (std::is_same_v<T, ObSLObject *>)
+                        m_stdout.get() << (arg ? "[Object]" : "null");
+                },
+                value);
     }
 
     void Interpreter::execute_print_ln_stmt(const PrintlnStmt *stmt) {
@@ -197,13 +190,9 @@ namespace ObSL {
         environment->define(stmt->name, value);
     }
 
-    Value Interpreter::evaluate_literal(const LiteralExpr *expr) {
-        return expr->value;
-    }
+    Value Interpreter::evaluate_literal(const LiteralExpr *expr) { return expr->value; }
 
-    Value Interpreter::evaluate_variable(const VariableExpr *expr) const {
-        return environment->get(expr->name);
-    }
+    Value Interpreter::evaluate_variable(const VariableExpr *expr) const { return environment->get(expr->name); }
 
     Value Interpreter::evaluate_array(const ArrayExpr *expr) {
         const GCProtectScope scope(this);
@@ -211,7 +200,7 @@ namespace ObSL {
         scope.protect(array);
 
         array->elements.reserve(expr->elements.size());
-        for (const auto &item: expr->elements) {
+        for (const auto &item : expr->elements) {
             Value val = evaluate(item.get());
             scope.protect(val);
             array->elements.push_back(val);
@@ -264,8 +253,7 @@ namespace ObSL {
             array->elements[index] = value;
             return value;
         }
-        throw RuntimeError(expr->bracket,
-                           "Only collections can be indexed for assignment.");
+        throw RuntimeError(expr->bracket, "Only collections can be indexed for assignment.");
     }
 
     Value Interpreter::evaluate_binary(const BinaryExpr *expr) {
@@ -295,8 +283,7 @@ namespace ObSL {
                 check_number_operands(expr->oprt_type, lhs, rhs);
                 return std::get<double>(lhs) - std::get<double>(rhs);
             case TokenType::PLUS:
-                if (std::holds_alternative<std::string>(lhs) ||
-                    std::holds_alternative<std::string>(rhs)) {
+                if (std::holds_alternative<std::string>(lhs) || std::holds_alternative<std::string>(rhs)) {
                     auto stringify = [](const Value &val) -> std::string {
                         if (std::holds_alternative<std::string>(val))
                             return std::get<std::string>(val);
@@ -308,8 +295,7 @@ namespace ObSL {
                     };
                     return stringify(lhs) + stringify(rhs);
                 }
-                if (std::holds_alternative<double>(lhs) &&
-                    std::holds_alternative<double>(rhs)) {
+                if (std::holds_alternative<double>(lhs) && std::holds_alternative<double>(rhs)) {
                     return std::get<double>(lhs) + std::get<double>(rhs);
                 }
                 throw RuntimeError(Token{TokenType::UNKNOWN, "binary", 0, 0, 0, 0},
@@ -317,14 +303,12 @@ namespace ObSL {
             case TokenType::SLASH:
                 check_number_operands(expr->oprt_type, lhs, rhs);
                 if (std::get<double>(rhs) == 0)
-                    throw RuntimeError(Token{expr->oprt_type, "", 0, 0, 0, 0},
-                                       "Division by zero.");
+                    throw RuntimeError(Token{expr->oprt_type, "", 0, 0, 0, 0}, "Division by zero.");
                 return std::get<double>(lhs) / std::get<double>(rhs);
             case TokenType::PERCENT:
                 check_number_operands(expr->oprt_type, lhs, rhs);
                 if (std::get<double>(rhs) == 0)
-                    throw RuntimeError(Token{expr->oprt_type, "", 0, 0, 0, 0},
-                                       "Modulo by zero.");
+                    throw RuntimeError(Token{expr->oprt_type, "", 0, 0, 0, 0}, "Modulo by zero.");
                 return std::fmod(std::get<double>(lhs), std::get<double>(rhs));
             case TokenType::STAR:
                 check_number_operands(expr->oprt_type, lhs, rhs);
@@ -355,9 +339,7 @@ namespace ObSL {
         return std::monostate{};
     }
 
-    Value Interpreter::evaluate_grouping(const GroupingExpr *expr) {
-        return evaluate(expr->expr.get());
-    }
+    Value Interpreter::evaluate_grouping(const GroupingExpr *expr) { return evaluate(expr->expr.get()); }
 
     Value Interpreter::evaluate_unary(const UnaryExpr *expr) {
         const Value right = evaluate(expr->right.get());
@@ -369,11 +351,9 @@ namespace ObSL {
                 return !is_truthy(right);
             case TokenType::TILDE:
                 if (std::holds_alternative<double>(right)) {
-                    return static_cast<double>(
-                        ~static_cast<int64_t>(std::get<double>(right)));
+                    return static_cast<double>(~static_cast<int64_t>(std::get<double>(right)));
                 }
-                throw RuntimeError(Token{TokenType::UNKNOWN, "unary", 0, 0, 0, 0},
-                                   "Operand must be a number.");
+                throw RuntimeError(Token{TokenType::UNKNOWN, "unary", 0, 0, 0, 0}, "Operand must be a number.");
             default:
                 break;
         }
@@ -384,8 +364,7 @@ namespace ObSL {
         const Value current_value = environment->get(expr->name);
         check_number_operand(expr->oprt_type, current_value);
         double num = std::get<double>(current_value);
-        double new_num =
-                expr->oprt_type == TokenType::PLUS_PLUS ? num + 1.0 : num - 1.0;
+        double new_num = expr->oprt_type == TokenType::PLUS_PLUS ? num + 1.0 : num - 1.0;
         environment->assign(expr->name, Value(new_num));
         return expr->is_prefix ? Value(new_num) : Value(num);
     }
@@ -445,39 +424,36 @@ namespace ObSL {
         return true;
     }
 
-    void Interpreter::check_number_operand(const TokenType oprt,
-                                           const Value &oprnd) {
+    void Interpreter::check_number_operand(const TokenType oprt, const Value &oprnd) {
         if (std::holds_alternative<double>(oprnd))
             return;
         throw RuntimeError(Token{oprt, "", 0, 0, 0, 0}, "Operand must be a number.");
     }
 
-    void Interpreter::check_number_operands(const TokenType oprt, const Value &lhs,
-                                            const Value &rhs) {
-        if (!std::holds_alternative<double>(lhs) ||
-            !std::holds_alternative<double>(rhs)) {
-            throw RuntimeError(Token{oprt, "", 0, 0, 0, 0},
-                               "Operands must be numbers.");
+    void Interpreter::check_number_operands(const TokenType oprt, const Value &lhs, const Value &rhs) {
+        if (!std::holds_alternative<double>(lhs) || !std::holds_alternative<double>(rhs)) {
+            throw RuntimeError(Token{oprt, "", 0, 0, 0, 0}, "Operands must be numbers.");
         }
     }
 
     bool Interpreter::is_equal(const Value &a, const Value &b) {
         return std::visit(
-            [](auto &&arg1, auto &&arg2) {
-                using T1 = std::decay_t<decltype(arg1)>;
-                using T2 = std::decay_t<decltype(arg2)>;
-                if constexpr (std::is_same_v<T1, T2>)
-                    return arg1 == arg2;
-                else
-                    return false;
-            },
-            a, b);
+                [](auto &&arg1, auto &&arg2) {
+                    using T1 = std::decay_t<decltype(arg1)>;
+                    using T2 = std::decay_t<decltype(arg2)>;
+                    if constexpr (std::is_same_v<T1, T2>)
+                        return arg1 == arg2;
+                    else
+                        return false;
+                },
+                a, b);
     }
 
     ModuleLoader Interpreter::createDefaultModuleLoader() {
         return [](const std::string &path) -> std::optional<ModuleResult> {
             std::ifstream file(path);
-            if (!file.is_open()) return std::nullopt;
+            if (!file.is_open())
+                return std::nullopt;
             std::stringstream buffer;
             buffer << file.rdbuf();
             ModuleResult r;
@@ -487,11 +463,11 @@ namespace ObSL {
         };
     }
 
-    //std::string Interpreter::canonicalize_module_path(const std::string &rawpath) const {
-    //    namespace fs = std::filesystem;
-    //    const fs::path path = m_script_root / rawpath;
-    //    return path.lexically_normal().generic_string();
-    //}
+    // std::string Interpreter::canonicalize_module_path(const std::string &rawpath) const {
+    //     namespace fs = std::filesystem;
+    //     const fs::path path = m_script_root / rawpath;
+    //     return path.lexically_normal().generic_string();
+    // }
 
     void Interpreter::execute_using_stmt(const UsingStmt *stmt) {
         std::unique_lock lock(m_modules_mutex);
@@ -500,8 +476,7 @@ namespace ObSL {
 
         if (auto it = loaded_modules.find(canonical_path); it != loaded_modules.end()) {
             if (it->second == nullptr) {
-                throw RuntimeError(stmt->keyword,
-                                   std::format("Circular import detected: '{}'", canonical_path));
+                throw RuntimeError(stmt->keyword, std::format("Circular import detected: '{}'", canonical_path));
             }
             environment->define(module_name, it->second);
             return;
@@ -512,11 +487,10 @@ namespace ObSL {
         auto result = m_module_loader(canonical_path);
         if (!result.has_value()) {
             loaded_modules.erase(canonical_path);
-            throw RuntimeError(stmt->keyword,
-                               std::format("Could not resolve module '{}'.", canonical_path));
+            throw RuntimeError(stmt->keyword, std::format("Could not resolve module '{}'.", canonical_path));
         }
 
-        const std::vector<std::unique_ptr<Stmt> > *statements_ptr = nullptr;
+        const std::vector<std::unique_ptr<Stmt>> *statements_ptr = nullptr;
 
         if (result->kind == ModuleResult::Kind::Source) {
             module_sources.push_back(std::move(result->source));
@@ -546,12 +520,10 @@ namespace ObSL {
 
         try {
             environment = module_env;
-            for (const auto &module_stmt: statements | std::views::filter([](auto &s) {
-                return s != nullptr;
-            })) {
+            for (const auto &module_stmt : statements | std::views::filter([](auto &s) { return s != nullptr; })) {
                 execute(module_stmt.get());
             }
-            for (const auto &[name, val]: module_env->get_values()) {
+            for (const auto &[name, val] : module_env->get_values()) {
                 module_obj->fields[name] = val;
             }
             environment = previous_env;
@@ -568,8 +540,7 @@ namespace ObSL {
 
         if (loaded_modules.size() > max_loaded_modules) {
             size_t to_remove = loaded_modules.size() / 2;
-            for (auto it = loaded_modules.begin();
-                 to_remove > 0 && it != loaded_modules.end(); ++it) {
+            for (auto it = loaded_modules.begin(); to_remove > 0 && it != loaded_modules.end(); ++it) {
                 it = loaded_modules.erase(it);
                 --to_remove;
             }
@@ -593,13 +564,12 @@ namespace ObSL {
         environment->define(stmt->name.lexeme, struct_def);
     }
 
-    void Interpreter::execute_block(
-        const std::span<const std::unique_ptr<Stmt>> statements,
-        std::shared_ptr<Environment> block_env) {
+    void Interpreter::execute_block(const std::span<const std::unique_ptr<Stmt>> statements,
+                                    std::shared_ptr<Environment> block_env) {
         std::unique_lock lock(m_interpreter_mutex);
         EnvironmentGuard guard(environment, environment);
         environment = std::move(block_env);
-        for (const auto &stmt: statements) {
+        for (const auto &stmt : statements) {
             if (stmt)
                 execute(stmt.get());
         }
@@ -623,25 +593,22 @@ namespace ObSL {
         const Value condition_val = evaluate(stmt->condition.get());
         try {
             const CaseBranch *default_branch = nullptr;
-            for (const auto &case_branch: stmt->cases) {
+            for (const auto &case_branch : stmt->cases) {
                 if (case_branch.match_value == nullptr) {
                     default_branch = &case_branch;
                     continue;
                 }
-                if (Value case_val = evaluate(case_branch.match_value.get());
-                    is_equal(condition_val, case_val)) {
-                    for (const auto &case_stmt:
-                         case_branch.statements |
-                         std::views::filter([](auto &s) { return s != nullptr; })) {
+                if (Value case_val = evaluate(case_branch.match_value.get()); is_equal(condition_val, case_val)) {
+                    for (const auto &case_stmt :
+                         case_branch.statements | std::views::filter([](auto &s) { return s != nullptr; })) {
                         execute(case_stmt.get());
                     }
                     return;
                 }
             }
             if (default_branch != nullptr) {
-                for (const auto &case_stmt:
-                     default_branch->statements |
-                     std::views::filter([](auto &s) { return s != nullptr; })) {
+                for (const auto &case_stmt :
+                     default_branch->statements | std::views::filter([](auto &s) { return s != nullptr; })) {
                     execute(case_stmt.get());
                 }
             }
@@ -662,8 +629,7 @@ namespace ObSL {
     void Interpreter::execute_foreach_stmt(const ForeachStmt *stmt) {
         if (const Value iterable_val = evaluate(stmt->iterable.get());
             std::holds_alternative<ObSLArray *>(iterable_val)) {
-            for (const auto array = std::get<ObSLArray *>(iterable_val);
-                 const auto &item: array->elements) {
+            for (const auto array = std::get<ObSLArray *>(iterable_val); const auto &item : array->elements) {
                 auto loop_env = std::make_shared<Environment>(environment);
                 register_environment(loop_env);
                 loop_env->define(stmt->loop_var, item);
@@ -681,9 +647,7 @@ namespace ObSL {
         }
     }
 
-    void Interpreter::execute_break_stmt(const BreakStmt *) {
-        throw BreakException();
-    }
+    void Interpreter::execute_break_stmt(const BreakStmt *) { throw BreakException(); }
 
     void Interpreter::execute_return_stmt(const ReturnStmt *stmt) {
         Value value = std::monostate{};
@@ -700,16 +664,14 @@ namespace ObSL {
             if (expr->name == "len")
                 return static_cast<double>(array->elements.size());
             if (expr->name == "push") {
-                auto push_fn = [array](Interpreter *,
-                                       const std::vector<Value> &args) -> Value {
+                auto push_fn = [array](Interpreter *, const std::vector<Value> &args) -> Value {
                     array->elements.push_back(args[0]);
                     return args[0];
                 };
                 return gc.allocate<NativeFunction>(1, std::move(push_fn), "push");
             }
             if (expr->name == "pop") {
-                auto pop_fn = [array](Interpreter *,
-                                      const std::vector<Value> &) -> Value {
+                auto pop_fn = [array](Interpreter *, const std::vector<Value> &) -> Value {
                     if (array->elements.empty())
                         return std::monostate{}; // return null if empty
                     Value val = array->elements.back();
@@ -719,25 +681,22 @@ namespace ObSL {
                 return gc.allocate<NativeFunction>(0, std::move(pop_fn), "pop");
             }
             if (expr->name == "clear") {
-                auto clear_fn = [array](Interpreter *,
-                                        const std::vector<Value> &) -> Value {
+                auto clear_fn = [array](Interpreter *, const std::vector<Value> &) -> Value {
                     array->elements.clear();
                     return std::monostate{};
                 };
                 return gc.allocate<NativeFunction>(0, std::move(clear_fn), "clear");
             }
 
-            throw RuntimeError(
-                Token{TokenType::IDENTIFIER, expr->name, 0, 0, 0, 0},
-                std::format("Undefined property '{}' on Array.", expr->name));
+            throw RuntimeError(Token{TokenType::IDENTIFIER, expr->name, 0, 0, 0, 0},
+                               std::format("Undefined property '{}' on Array.", expr->name));
         }
 
         if (std::holds_alternative<ObSLObject *>(obj)) {
             const auto instance = std::get<ObSLObject *>(obj);
             const std::string prop_name(expr->name);
 
-            if (const auto it = instance->fields.find(prop_name);
-                it != instance->fields.end()) {
+            if (const auto it = instance->fields.find(prop_name); it != instance->fields.end()) {
                 Value val = it->second;
                 if (std::holds_alternative<ObSLCallable *>(val)) {
                     const auto callable = std::get<ObSLCallable *>(val);
@@ -747,12 +706,10 @@ namespace ObSL {
                 }
                 return val;
             }
-            throw RuntimeError(
-                Token{TokenType::IDENTIFIER, expr->name, 0, 0, 0, 0},
-                std::format("Undefined property '{}' on object.", expr->name));
+            throw RuntimeError(Token{TokenType::IDENTIFIER, expr->name, 0, 0, 0, 0},
+                               std::format("Undefined property '{}' on object.", expr->name));
         }
-        throw RuntimeError(Token{TokenType::IDENTIFIER, expr->name, 0, 0, 0, 0},
-                           " does not contain property.");
+        throw RuntimeError(Token{TokenType::IDENTIFIER, expr->name, 0, 0, 0, 0}, " does not contain property.");
     }
 
     Value Interpreter::evaluate_set(const SetExpr *expr) {
@@ -770,22 +727,18 @@ namespace ObSL {
         return value;
     }
 
-    int ObSLFunction::arity() const {
-        return static_cast<int>(declaration->params.size());
-    }
+    int ObSLFunction::arity() const { return static_cast<int>(declaration->params.size()); }
 
     int ObSLFunction::min_arity() const {
         int min_args = 0;
-        for (const auto &[name, default_value]: declaration->params) {
+        for (const auto &[name, default_value] : declaration->params) {
             if (default_value == nullptr)
                 min_args++;
         }
         return min_args;
     }
 
-    Value ObSLFunction::call(Interpreter *interpreter,
-                             const std::vector<Value> &arguments,
-                             const Token &call_token) {
+    Value ObSLFunction::call(Interpreter *interpreter, const std::vector<Value> &arguments, const Token &call_token) {
         const size_t max_arity = declaration->params.size();
         const auto environment = std::make_shared<Environment>(closure);
         interpreter->register_environment(environment);
@@ -817,13 +770,9 @@ namespace ObSL {
         return std::monostate{};
     }
 
-    std::string ObSLFunction::to_string() const {
-        return std::format("<fn {}>", declaration->name);
-    }
+    std::string ObSLFunction::to_string() const { return std::format("<fn {}>", declaration->name); }
 
-    Value ObSLStruct::call(Interpreter *interpreter,
-                           const std::vector<Value> &arguments,
-                           const Token &call_token) {
+    Value ObSLStruct::call(Interpreter *interpreter, const std::vector<Value> &arguments, const Token &call_token) {
         auto *instance = interpreter->gc.allocate<ObSLObject>();
 
         for (size_t i = 0; i < declaration->fields.size(); ++i) {

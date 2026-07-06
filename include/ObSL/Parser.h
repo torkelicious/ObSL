@@ -12,7 +12,7 @@ namespace ObSL {
     public:
         explicit Parser(std::vector<Token> tokens);
 
-        std::vector<std::unique_ptr<Stmt> > parse();
+        std::vector<std::unique_ptr<Stmt>> parse();
 
     private:
         std::vector<Token> tokens;
