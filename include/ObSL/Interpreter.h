@@ -4,6 +4,7 @@
 #include <functional>
 #include <iostream>
 #include <istream>
+#include <atomic>
 #include <memory>
 #include <optional>
 #include <shared_mutex>
@@ -49,12 +50,17 @@ namespace ObSL {
         }
 
         ~Interpreter() {
+            m_PoolAlive.store(false, std::memory_order_release);
             std::unique_lock lock(m_interpreter_mutex);
             if (globals)
                 globals->clear();
             for (auto &weak_env : all_environments) {
                 if (const auto env = weak_env.lock())
                     env->clear();
+            }
+            for (auto &entry : m_EnvPool) {
+                if (entry.env)
+                    entry.env->reset(nullptr);
             }
         }
 
@@ -65,6 +71,17 @@ namespace ObSL {
             }
             all_environments.push_back(env);
         }
+
+        // lock free version for single threaded workers
+        // only safe when called from the owning worker thread
+        void register_environment_unsafe(const std::shared_ptr<Environment> &env) {
+            if (++m_env_insert_count % prune_interval == 0) {
+                std::erase_if(all_environments, [](const std::weak_ptr<Environment> &wp) { return wp.expired(); });
+            }
+            all_environments.push_back(env);
+        }
+
+        std::shared_ptr<Environment> acquire_environment(std::shared_ptr<Environment> enclosing);
 
         void interpret(const std::vector<std::unique_ptr<Stmt>> &statements);
 
@@ -88,17 +105,14 @@ namespace ObSL {
 
 
         [[nodiscard]] std::shared_ptr<Environment> get_current_environment() const {
-            std::unique_lock lock(m_interpreter_mutex);
             return environment;
         }
 
         [[nodiscard]] std::shared_ptr<Environment> get_global_environment() const {
-            std::unique_lock lock(m_interpreter_mutex);
             return globals;
         }
 
         void set_current_environment(std::shared_ptr<Environment> env) {
-            std::unique_lock lock(m_interpreter_mutex);
             environment = std::move(env);
         }
 
@@ -130,6 +144,14 @@ namespace ObSL {
 
         mutable std::recursive_mutex m_interpreter_mutex;
         mutable std::shared_mutex m_modules_mutex;
+
+        static constexpr std::size_t kEnvPoolSize = 16;
+        struct PooledEnv {
+            std::unique_ptr<Environment> env;
+            bool in_use = false;
+        };
+        std::vector<PooledEnv> m_EnvPool;
+        std::atomic<bool> m_PoolAlive{true};
 
         std::filesystem::path m_script_root;
         ModuleLoader m_module_loader = createDefaultModuleLoader();

@@ -33,8 +33,33 @@ namespace ObSL {
         EnvironmentGuard &operator=(const EnvironmentGuard &) = delete;
     };
 
+    std::shared_ptr<Environment> Interpreter::acquire_environment(std::shared_ptr<Environment> enclosing) {
+        if (m_EnvPool.empty()) {
+            m_EnvPool.resize(kEnvPoolSize);
+            for (auto &entry : m_EnvPool)
+                entry.env = std::make_unique<Environment>();
+        }
+        for (size_t i = 0; i < m_EnvPool.size(); ++i) {
+            if (!m_EnvPool[i].in_use) {
+                m_EnvPool[i].in_use = true;
+                m_EnvPool[i].env->reset(std::move(enclosing));
+                auto *pool_alive = &m_PoolAlive;
+                auto *pool = &m_EnvPool;
+                return std::shared_ptr<Environment>(
+                    m_EnvPool[i].env.get(),
+                    [pool_alive, pool, i](Environment *) {
+                        if (pool_alive->load(std::memory_order_acquire)) {
+                            (*pool)[i].in_use = false;
+                            (*pool)[i].env->reset(nullptr);
+                        }
+                    });
+            }
+        }
+        return std::make_shared<Environment>(std::move(enclosing));
+    }
+
+    // No mutex: each ScriptWorker owns its Interpreter exclusively.
     void Interpreter::interpret(const std::vector<std::unique_ptr<Stmt>> &statements) {
-        std::unique_lock lock(m_interpreter_mutex);
         try {
             for (const auto &stmt : statements) {
                 if (stmt)
@@ -192,7 +217,7 @@ namespace ObSL {
 
     Value Interpreter::evaluate_literal(const LiteralExpr *expr) { return expr->value; }
 
-    Value Interpreter::evaluate_variable(const VariableExpr *expr) const { return environment->get(expr->name); }
+    Value Interpreter::evaluate_variable(const VariableExpr *expr) const { return environment->get_ref(expr->name); }
 
     Value Interpreter::evaluate_array(const ArrayExpr *expr) {
         const GCProtectScope scope(this);
@@ -361,7 +386,7 @@ namespace ObSL {
     }
 
     Value Interpreter::evaluate_update(const UpdateExpr *expr) const {
-        const Value current_value = environment->get(expr->name);
+        const Value &current_value = environment->get_ref(expr->name);
         check_number_operand(expr->oprt_type, current_value);
         double num = std::get<double>(current_value);
         double new_num = expr->oprt_type == TokenType::PLUS_PLUS ? num + 1.0 : num - 1.0;
@@ -553,7 +578,6 @@ namespace ObSL {
             execute_block_stmt(stmt->try_body.get());
         } catch (const RuntimeError &error) {
             const auto catch_env = std::make_shared<Environment>(environment);
-            register_environment(catch_env);
             catch_env->define(stmt->exception_var, std::string(error.what()));
             execute_block(stmt->catch_body->statements, catch_env);
         }
@@ -566,7 +590,6 @@ namespace ObSL {
 
     void Interpreter::execute_block(const std::span<const std::unique_ptr<Stmt>> statements,
                                     std::shared_ptr<Environment> block_env) {
-        std::unique_lock lock(m_interpreter_mutex);
         EnvironmentGuard guard(environment, environment);
         environment = std::move(block_env);
         for (const auto &stmt : statements) {
@@ -577,7 +600,6 @@ namespace ObSL {
 
     void Interpreter::execute_block_stmt(const BlockStmt *stmt) {
         const auto block_env = std::make_shared<Environment>(environment);
-        register_environment(block_env);
         EnvironmentGuard guard(environment, environment);
         execute_block(std::span(stmt->statements), block_env);
     }
@@ -631,7 +653,6 @@ namespace ObSL {
             std::holds_alternative<ObSLArray *>(iterable_val)) {
             for (const auto array = std::get<ObSLArray *>(iterable_val); const auto &item : array->elements) {
                 auto loop_env = std::make_shared<Environment>(environment);
-                register_environment(loop_env);
                 loop_env->define(stmt->loop_var, item);
                 EnvironmentGuard guard(environment, environment);
                 environment = std::move(loop_env);
@@ -740,8 +761,7 @@ namespace ObSL {
 
     Value ObSLFunction::call(Interpreter *interpreter, const std::vector<Value> &arguments, const Token &call_token) {
         const size_t max_arity = declaration->params.size();
-        const auto environment = std::make_shared<Environment>(closure);
-        interpreter->register_environment(environment);
+        const auto environment = interpreter->acquire_environment(closure);
         const auto previous_env = interpreter->get_current_environment();
 
         try {

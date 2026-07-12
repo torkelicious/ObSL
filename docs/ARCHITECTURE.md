@@ -158,7 +158,10 @@ Key features:
 - **Global Environment**: Root scope for all scripts
 - **Lexical Scoping**: Nested environments for blocks and functions
 - **Closures**: Functions capture their enclosing environment
-- **Thread Safety**: Uses `shared_mutex` for concurrent access
+- **Environment Pooling**: `acquire_environment()` reuses a ring pool of 16 pre-allocated environments to avoid repeated allocation for function calls. Each pool entry uses a custom `shared_ptr` deleter that returns the environment to the pool when the last reference is dropped.
+- **Reset & Reuse**: Pooled environments are reset via `Environment::reset(enclosing)`, which clears variables and re-parents the scope without deallocating.
+- **Zero Copy Variable Lookup**: `Environment::get_ref()` returns a `const Value&` directly from the map, avoiding copies during variable access.
+- **Thread Safety**: Hot path environment access (`set_current_environment`, `get_current_environment`, `interpret`, `execute_block`) is lock free. The `recursive_mutex` (`m_interpreter_mutex`) is only held during garbage collection (`mark_roots`), environment registration (`register_environment`), and interpreter destruction. For single-threaded workers, `register_environment_unsafe()` provides a lock-free variant.
 
 ### Value Representation
 
@@ -305,9 +308,10 @@ The project uses CMake with:
 
 ## Thread Safety Design
 
-- **Interpreter Mutex**: Protects interpreter state during execution
-- **Environment Locks**: `shared_mutex` for concurrent reads/writes
-- **Worker Isolation**: Each worker has independent interpreter and environment
+- **Interpreter Mutex** (`m_interpreter_mutex`): `recursive_mutex` held only during GC root marking, environment registration, and interpreter destruction. The hot execution path is lock-free.
+- **Modules Mutex** (`m_modules_mutex`): `shared_mutex` protecting the module cache during concurrent module imports.
+- **Worker Isolation**: Each `ScriptWorker` has its own `Interpreter` instance with independent environments. Workers use `register_environment_unsafe()` (lock free) since they are the sole owner of their interpreter.
+- **Environment Pool**: `acquire_environment()` returns a `shared_ptr<Environment>` with a custom deleter. The pool is only accessed from the owning thread; the custom deleter checks an atomic `m_PoolAlive` flag to safely return entries even during interpreter teardown.
 
 ## Notes
 

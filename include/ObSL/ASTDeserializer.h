@@ -33,8 +33,8 @@ namespace ObSL {
             return std::string_view(m_pool[idx]);
         }
 
-        ASTDeserializer(const std::vector<uint8_t> &data, const std::vector<std::string> &pool)
-            : m_ptr(data.data()), m_end(data.data() + data.size()), m_pool(pool) {}
+        ASTDeserializer(const uint8_t *data, size_t size, const std::vector<std::string> &pool)
+            : m_ptr(data), m_end(data + size), m_pool(pool) {}
 
         std::unique_ptr<Expr> deserialize_expr();
 
@@ -72,9 +72,8 @@ namespace ObSL {
             std::memcpy(&stmt_count, ptr, sizeof(uint32_t));
             ptr += sizeof(uint32_t);
 
-            // deserialize nodes using layout cursor
-            const std::vector<uint8_t> node_payload(ptr, end);
-            ASTDeserializer deserializer(node_payload, pool);
+            // deserialize nodes directly from the input buffer
+            ASTDeserializer deserializer(ptr, static_cast<size_t>(end - ptr), pool);
 
             SerializedModule module;
             module.statements.reserve(stmt_count);
