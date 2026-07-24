@@ -15,6 +15,10 @@ namespace ObSL {
                     return std::max<size_t>(1, hw > 2 ? hw - 2u : 1u);
                 }());
 
+        void shutdown() {
+            m_Workers.clear();
+        }
+
         [[nodiscard]] ScriptWorker *get_worker(const size_t index) { return m_Workers[index].get(); }
         [[nodiscard]] const ScriptWorker *get_worker(const size_t index) const { return m_Workers[index].get(); }
 
