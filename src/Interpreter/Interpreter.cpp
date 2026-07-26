@@ -496,7 +496,7 @@ namespace ObSL {
 
     void Interpreter::execute_using_stmt(const UsingStmt *stmt) {
         std::unique_lock lock(m_modules_mutex);
-        std::string canonical_path = ObSL::canonicalize_module_path(m_script_root, stmt->path);
+        std::string canonical_path = canonicalize_module_path(m_script_root, stmt->path);
         std::string module_name = std::filesystem::path(canonical_path).stem().string();
 
         if (auto it = loaded_modules.find(canonical_path); it != loaded_modules.end()) {
