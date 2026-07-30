@@ -90,7 +90,7 @@ namespace ObSL {
 
         RuntimeError(const std::string_view name, std::string_view message)
             : std::runtime_error(std::format("Error: {}", message)),
-              token(Token{TokenType::UNKNOWN, name, 0, 0, 0, 0}) {}
+              token(Token{TokenType::UNKNOWN_, name, 0, 0, 0, 0}) {}
     };
 
     struct NativeTypeError : public std::runtime_error {

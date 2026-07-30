@@ -110,7 +110,7 @@ namespace ObSL {
                 {"catch", TokenType::CATCH},     {"default", TokenType::DEFAULT}, {"switch", TokenType::SWITCH},
                 {"struct", TokenType::STRUCT},   {"else", TokenType::ELSE},       {"false", TokenType::FALSE_},
                 {"fn", TokenType::FN},           {"for", TokenType::FOR},         {"foreach", TokenType::FOREACH},
-                {"if", TokenType::IF},           {"in", TokenType::IN},           {"is", TokenType::IS},
+                {"if", TokenType::IF},           {"in", TokenType::IN_},           {"is", TokenType::IS},
                 {"null", TokenType::NULL_},      {"or", TokenType::OR},           {"print", TokenType::PRINT},
                 {"println", TokenType::PRINTLN}, {"return", TokenType::RETURN},   {"true", TokenType::TRUE_},
                 {"try", TokenType::TRY},         {"using", TokenType::USING},     {"var", TokenType::VAR},
@@ -156,7 +156,7 @@ namespace ObSL {
             advance();
         }
         if (is_at_end()) {
-            throw RuntimeError(Token{TokenType::UNKNOWN, "", static_cast<uint16_t>(line),
+            throw RuntimeError(Token{TokenType::UNKNOWN_, "", static_cast<uint16_t>(line),
                                      static_cast<uint16_t>(start_col), static_cast<uint32_t>(current)},
                                "Unterminated string.");
         }
@@ -433,7 +433,7 @@ namespace ObSL {
                              static_cast<uint32_t>(start_pos),
                              static_cast<uint32_t>(current)};
             default:
-                return Token{TokenType::UNKNOWN,
+                return Token{TokenType::UNKNOWN_,
                              std::string_view(&source[start_pos], 1),
                              static_cast<uint16_t>(line),
                              static_cast<uint16_t>(start_col),

@@ -323,7 +323,7 @@ namespace ObSL {
                 if (std::holds_alternative<double>(lhs) && std::holds_alternative<double>(rhs)) {
                     return std::get<double>(lhs) + std::get<double>(rhs);
                 }
-                throw RuntimeError(Token{TokenType::UNKNOWN, "binary", 0, 0, 0, 0},
+                throw RuntimeError(Token{TokenType::UNKNOWN_, "binary", 0, 0, 0, 0},
                                    "Operands must be numbers or strings.");
             case TokenType::SLASH:
                 check_number_operands(expr->oprt_type, lhs, rhs);
@@ -378,7 +378,7 @@ namespace ObSL {
                 if (std::holds_alternative<double>(right)) {
                     return static_cast<double>(~static_cast<int64_t>(std::get<double>(right)));
                 }
-                throw RuntimeError(Token{TokenType::UNKNOWN, "unary", 0, 0, 0, 0}, "Operand must be a number.");
+                throw RuntimeError(Token{TokenType::UNKNOWN_, "unary", 0, 0, 0, 0}, "Operand must be a number.");
             default:
                 break;
         }
@@ -663,7 +663,7 @@ namespace ObSL {
                 }
             }
         } else {
-            throw RuntimeError(Token{TokenType::UNKNOWN, stmt->loop_var, 0, 0, 0, 0},
+            throw RuntimeError(Token{TokenType::UNKNOWN_, stmt->loop_var, 0, 0, 0, 0},
                                "Object is not iterable. Expected an Array.");
         }
     }

@@ -46,3 +46,5 @@ compile_commands.json
 .directory
 /.zed/
 .clangd
+/.vs
+/.vs

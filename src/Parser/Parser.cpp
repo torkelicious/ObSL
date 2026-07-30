@@ -456,7 +456,7 @@ namespace ObSL {
         consume(TokenType::LEFT_PAREN, "Expect '(' after 'foreach'.");
         match({TokenType::VAR});
         Token loop_var = consume(TokenType::IDENTIFIER, "Expect variable name.");
-        consume(TokenType::IN, "Expect 'in' after variable name.");
+        consume(TokenType::IN_, "Expect 'in' after variable name.");
         auto iterable = parse_expression();
         consume(TokenType::RIGHT_PAREN, "Expect ')' after foreach clauses.");
         auto body = parse_statement();

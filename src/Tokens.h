@@ -63,7 +63,7 @@ namespace ObSL {
         FOREACH,
         FN,
         IF,
-        IN,
+        IN_,
         IS,
         NULL_,
         OR,
@@ -82,7 +82,7 @@ namespace ObSL {
 
         // Special
         EOF_,
-        UNKNOWN
+        UNKNOWN_
     };
 
     struct Token {
