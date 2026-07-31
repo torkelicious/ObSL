@@ -78,8 +78,8 @@ namespace ObSL {
 
     void ScriptEntry::run(const std::string &source, const bool is_repl) {
         // ANSI color codes
-        constexpr std::string RED = "\033[31m";
-        constexpr std::string RESET = "\033[0m";
+        constexpr std::string_view RED = "\033[31m";
+        constexpr std::string_view RESET = "\033[0m";
 
         try {
             Lexer lexer(source);
