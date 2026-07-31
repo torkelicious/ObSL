@@ -10,10 +10,10 @@ namespace ObSL {
     class ScriptRuntime {
     public:
         void init(
-                const std::string &script_root, size_t worker_count = [] {
-                    const auto hw = std::thread::hardware_concurrency();
-                    return std::max<size_t>(1, hw > 2 ? hw - 2u : 1u);
-                }());
+            const std::string &script_root, size_t worker_count = [] {
+                const auto hw = std::thread::hardware_concurrency();
+                return std::max<size_t>(1, hw > 2 ? hw - 2u : 1u);
+            }());
 
         void shutdown() {
             m_Workers.clear();
@@ -29,6 +29,6 @@ namespace ObSL {
         void set_script_root(const std::string &path) const;
 
     private:
-        std::vector<std::unique_ptr<ScriptWorker>> m_Workers;
+        std::vector<std::unique_ptr<ScriptWorker> > m_Workers;
     };
 } // namespace ObSL

@@ -54,11 +54,11 @@ namespace ObSL {
             std::unique_lock lock(m_interpreter_mutex);
             if (globals)
                 globals->clear();
-            for (auto &weak_env : all_environments) {
+            for (auto &weak_env: all_environments) {
                 if (const auto env = weak_env.lock())
                     env->clear();
             }
-            for (auto &entry : m_EnvPool) {
+            for (auto &entry: m_EnvPool) {
                 if (entry.env)
                     entry.env->reset(nullptr);
             }
@@ -83,13 +83,14 @@ namespace ObSL {
 
         std::shared_ptr<Environment> acquire_environment(std::shared_ptr<Environment> enclosing);
 
-        void interpret(const std::vector<std::unique_ptr<Stmt>> &statements);
+        void interpret(const std::vector<std::unique_ptr<Stmt> > &statements);
 
         void execute_block(std::span<const std::unique_ptr<Stmt>> statements, std::shared_ptr<Environment> block_env);
 
         void define_native(const std::string &name, ObSLCallable *function) const { globals->define(name, function); }
 
-        template <typename F> void define_native(std::string name, F &&body);
+        template<typename F>
+        void define_native(std::string name, F &&body);
 
         void Set_Stdout(std::ostream &out) { m_stdout = std::ref(out); }
         void Set_Stdin(std::istream &in) { m_stdin = std::ref(in); }
@@ -120,16 +121,16 @@ namespace ObSL {
             std::unique_lock lock(m_interpreter_mutex);
             if (globals)
                 globals->mark();
-            for (auto &weak_env : all_environments) {
+            for (auto &weak_env: all_environments) {
                 if (const auto env = weak_env.lock())
                     env->mark();
             }
             if (environment)
                 environment->mark();
-            for (auto &val : gc_protect_stack) {
+            for (auto &val: gc_protect_stack) {
                 mark_value(val);
             }
-            for (const auto &module_obj : loaded_modules | std::views::values) {
+            for (const auto &module_obj: loaded_modules | std::views::values) {
                 if (module_obj)
                     module_obj->mark();
             }
@@ -166,12 +167,12 @@ namespace ObSL {
 
         std::shared_ptr<Environment> globals;
         std::shared_ptr<Environment> environment;
-        std::vector<std::weak_ptr<Environment>> all_environments;
+        std::vector<std::weak_ptr<Environment> > all_environments;
 
         std::unordered_map<std::string, ObSLObject *> loaded_modules;
 
         std::vector<std::string> module_sources;
-        std::vector<std::vector<std::unique_ptr<Stmt>>> module_asts;
+        std::vector<std::vector<std::unique_ptr<Stmt> > > module_asts;
 
         std::size_t m_env_insert_count = 0;
 
@@ -299,9 +300,10 @@ namespace ObSL {
         }
     };
 
-    template <typename F> void Interpreter::define_native(std::string name, F &&body) {
+    template<typename F>
+    void Interpreter::define_native(std::string name, F &&body) {
         using DecayedF = std::decay_t<F>;
-        if constexpr (std::is_pointer_v<DecayedF> && std::is_function_v<std::remove_pointer_t<DecayedF>>) {
+        if constexpr (std::is_pointer_v<DecayedF> && std::is_function_v<std::remove_pointer_t<DecayedF> >) {
             using Traits = native_fn_traits<DecayedF>;
             auto wrapped = [body = std::forward<F>(body)](Interpreter *, const std::vector<Value> &args) -> Value {
                 return call_native_helper<DecayedF, Traits>(body, args, std::make_index_sequence<Traits::arity>{});

@@ -34,7 +34,7 @@ namespace ObSL {
                 nlohmann::json output;
                 output["status"] = "error";
                 output["errors"].push_back(
-                        {{"line", 1}, {"column", 1}, {"message", "No input file specified for linting."}});
+                    {{"line", 1}, {"column", 1}, {"message", "No input file specified for linting."}});
                 std::cout << output.dump() << std::endl;
                 return 64;
             }

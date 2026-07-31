@@ -15,7 +15,7 @@ namespace ObSL {
 
     void GarbageCollector::collect() {
         // mark external roots first  (shared)
-        for (auto *root : m_ExternalRoots) {
+        for (auto *root: m_ExternalRoots) {
             if (root)
                 root->mark();
         }

@@ -33,7 +33,7 @@ namespace ObSL {
             if (is_marked)
                 return;
             is_marked = true;
-            for (auto &val : fields | std::views::values) {
+            for (auto &val: fields | std::views::values) {
                 mark_value(val);
             }
         }
@@ -46,7 +46,7 @@ namespace ObSL {
             if (is_marked)
                 return;
             is_marked = true;
-            for (auto &val : elements) {
+            for (auto &val: elements) {
                 mark_value(val);
             }
         }
@@ -160,9 +160,9 @@ namespace ObSL {
     struct CallExpr : Expr {
         std::unique_ptr<Expr> callee;
         Token paren;
-        std::vector<std::unique_ptr<Expr>> arguments;
+        std::vector<std::unique_ptr<Expr> > arguments;
 
-        CallExpr(std::unique_ptr<Expr> callee, const Token &paren, std::vector<std::unique_ptr<Expr>> arguments)
+        CallExpr(std::unique_ptr<Expr> callee, const Token &paren, std::vector<std::unique_ptr<Expr> > arguments)
             : callee(std::move(callee)), paren(paren), arguments(std::move(arguments)) {
         }
 
@@ -190,25 +190,25 @@ namespace ObSL {
 
         [[nodiscard]] std::string to_string() const override {
             return std::visit(
-                    []<typename T0>(const T0 &arg) -> std::string {
-                        using T = std::decay_t<T0>;
-                        if constexpr (std::is_same_v<T, std::monostate>)
-                            return "null";
-                        else if constexpr (std::is_same_v<T, bool>)
-                            return arg ? std::string("true") : std::string("false");
-                        else if constexpr (std::is_same_v<T, double>)
-                            return std::format("{}", arg);
-                        else if constexpr (std::is_same_v<T, std::string>)
-                            return std::format("\"{}\"", arg);
-                        else if constexpr (std::is_same_v<T, std::shared_ptr<ObSLCallable>>)
-                            return arg ? arg->to_string() : std::string("<callable>");
-                        else if constexpr (std::is_same_v<T, std::shared_ptr<ObSLArray>>)
-                            return "[Array]";
-                        else if constexpr (std::is_same_v<T, std::shared_ptr<ObSLObject>>)
-                            return "[Object]";
-                        return "";
-                    },
-                    value);
+                []<typename T0>(const T0 &arg) -> std::string {
+                    using T = std::decay_t<T0>;
+                    if constexpr (std::is_same_v<T, std::monostate>)
+                        return "null";
+                    else if constexpr (std::is_same_v<T, bool>)
+                        return arg ? std::string("true") : std::string("false");
+                    else if constexpr (std::is_same_v<T, double>)
+                        return std::format("{}", arg);
+                    else if constexpr (std::is_same_v<T, std::string>)
+                        return std::format("\"{}\"", arg);
+                    else if constexpr (std::is_same_v<T, std::shared_ptr<ObSLCallable> >)
+                        return arg ? arg->to_string() : std::string("<callable>");
+                    else if constexpr (std::is_same_v<T, std::shared_ptr<ObSLArray> >)
+                        return "[Array]";
+                    else if constexpr (std::is_same_v<T, std::shared_ptr<ObSLObject> >)
+                        return "[Object]";
+                    return "";
+                },
+                value);
         }
     };
 
@@ -304,7 +304,7 @@ namespace ObSL {
     struct UpdateExpr : Expr {
         std::string_view name;
         TokenType oprt_type;
-        uint8_t is_prefix : 1; // bit field for boolean
+        uint8_t is_prefix: 1; // bit field for boolean
 
         UpdateExpr(const std::string_view name, const Token &oprt, const bool prefix)
             : name(name), oprt_type(oprt.type), is_prefix(prefix) {
@@ -336,9 +336,9 @@ namespace ObSL {
     };
 
     struct ArrayExpr : Expr {
-        std::vector<std::unique_ptr<Expr>> elements;
+        std::vector<std::unique_ptr<Expr> > elements;
 
-        explicit ArrayExpr(std::vector<std::unique_ptr<Expr>> elements) : elements(std::move(elements)) {
+        explicit ArrayExpr(std::vector<std::unique_ptr<Expr> > elements) : elements(std::move(elements)) {
         }
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Array; }
@@ -490,16 +490,16 @@ namespace ObSL {
     };
 
     struct BlockStmt : Stmt {
-        std::vector<std::unique_ptr<Stmt>> statements;
+        std::vector<std::unique_ptr<Stmt> > statements;
 
-        explicit BlockStmt(std::vector<std::unique_ptr<Stmt>> stmts) : statements(std::move(stmts)) {
+        explicit BlockStmt(std::vector<std::unique_ptr<Stmt> > stmts) : statements(std::move(stmts)) {
         }
 
         [[nodiscard]] StmtType type() const noexcept override { return StmtType::Block; }
 
         [[nodiscard]] std::string to_string() const override {
             std::string body;
-            for (const auto &inner_stmt : statements) {
+            for (const auto &inner_stmt: statements) {
                 body += std::format("  {}", inner_stmt->to_string());
             }
             return std::format("[BlockStmt: {{\n{}}}\n", body);
@@ -551,9 +551,9 @@ namespace ObSL {
 
     struct CaseBranch {
         std::unique_ptr<Expr> match_value;
-        std::vector<std::unique_ptr<Stmt>> statements;
+        std::vector<std::unique_ptr<Stmt> > statements;
 
-        CaseBranch(std::unique_ptr<Expr> match_value, std::vector<std::unique_ptr<Stmt>> statements)
+        CaseBranch(std::unique_ptr<Expr> match_value, std::vector<std::unique_ptr<Stmt> > statements)
             : match_value(std::move(match_value)), statements(std::move(statements)) {
         }
     };

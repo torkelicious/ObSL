@@ -2,7 +2,6 @@
 #include <iostream>
 
 namespace ObSL {
-
     void ScriptRuntime::init(const std::string &script_root, const size_t worker_count) {
         if (!m_Workers.empty())
             return;
@@ -15,13 +14,13 @@ namespace ObSL {
 
 
     void ScriptRuntime::set_stdout(std::ostream &out) const {
-        for (const auto &worker : m_Workers) {
+        for (const auto &worker: m_Workers) {
             worker->GetInterpreter().Set_Stdout(out);
         }
     }
 
     void ScriptRuntime::set_script_root(const std::string &path) const {
-        for (const auto &worker : m_Workers) {
+        for (const auto &worker: m_Workers) {
             worker->GetInterpreter().set_script_root(path);
         }
     }

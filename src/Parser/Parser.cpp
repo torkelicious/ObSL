@@ -9,8 +9,8 @@ namespace ObSL {
     Parser::Parser(std::vector<Token> tokens) : tokens(std::move(tokens)) {
     }
 
-    std::vector<std::unique_ptr<Stmt>> Parser::parse() {
-        std::vector<std::unique_ptr<Stmt>> statements;
+    std::vector<std::unique_ptr<Stmt> > Parser::parse() {
+        std::vector<std::unique_ptr<Stmt> > statements;
         while (!is_at_end()) {
             statements.push_back(parse_statement());
         }
@@ -65,8 +65,10 @@ namespace ObSL {
 
     std::unique_ptr<Expr> Parser::parse_assignment() {
         auto expr = parse_logical_or();
-        if (match({TokenType::ASSIGN, TokenType::PLUS_EQUAL, TokenType::MINUS_EQUAL, TokenType::STAR_EQUAL,
-                   TokenType::SLASH_EQUAL, TokenType::PERCENT_EQUAL})) {
+        if (match({
+            TokenType::ASSIGN, TokenType::PLUS_EQUAL, TokenType::MINUS_EQUAL, TokenType::STAR_EQUAL,
+            TokenType::SLASH_EQUAL, TokenType::PERCENT_EQUAL
+        })) {
             const Token equals = previous();
             auto value = parse_assignment();
             if (const auto *var_expr = dynamic_cast<VariableExpr *>(expr.get())) {
@@ -169,7 +171,7 @@ namespace ObSL {
         auto expr = parse_primary();
         while (true) {
             if (match({TokenType::LEFT_PAREN})) {
-                std::vector<std::unique_ptr<Expr>> args;
+                std::vector<std::unique_ptr<Expr> > args;
                 if (!check(TokenType::RIGHT_PAREN)) {
                     do {
                         args.push_back(parse_expression());
@@ -369,7 +371,7 @@ namespace ObSL {
             return std::make_unique<GroupingExpr>(std::move(expr));
         }
         if (match({TokenType::LEFT_BRACKET})) {
-            std::vector<std::unique_ptr<Expr>> elements;
+            std::vector<std::unique_ptr<Expr> > elements;
             if (!check(TokenType::RIGHT_BRACKET)) {
                 do {
                     elements.push_back(parse_expression());
@@ -383,7 +385,7 @@ namespace ObSL {
     }
 
     std::unique_ptr<BlockStmt> Parser::parse_block() {
-        std::vector<std::unique_ptr<Stmt>> stmts;
+        std::vector<std::unique_ptr<Stmt> > stmts;
         while (!check(TokenType::RIGHT_BRACE) && !is_at_end()) {
             stmts.push_back(parse_statement());
         }
@@ -499,7 +501,7 @@ namespace ObSL {
                 throw RuntimeError(peek(), "Expect 'case' or 'default'.");
             }
 
-            std::vector<std::unique_ptr<Stmt>> statements;
+            std::vector<std::unique_ptr<Stmt> > statements;
             while (!check(TokenType::CASE) && !check(TokenType::DEFAULT) && !check(TokenType::RIGHT_BRACE) &&
                    !is_at_end()) {
                 statements.push_back(parse_statement());
@@ -549,7 +551,7 @@ namespace ObSL {
         std::unique_ptr<Stmt> body = parse_statement();
 
         if (increment != nullptr) {
-            std::vector<std::unique_ptr<Stmt>> body_stmts;
+            std::vector<std::unique_ptr<Stmt> > body_stmts;
             body_stmts.push_back(std::move(body));
             body_stmts.push_back(std::make_unique<ExpressionStmt>(std::move(increment)));
             body = std::make_unique<BlockStmt>(std::move(body_stmts));
@@ -563,7 +565,7 @@ namespace ObSL {
         body = std::make_unique<WhileStmt>(std::move(condition), std::move(body));
 
         if (initializer != nullptr) {
-            std::vector<std::unique_ptr<Stmt>> for_stmts;
+            std::vector<std::unique_ptr<Stmt> > for_stmts;
             for_stmts.push_back(std::move(initializer));
             for_stmts.push_back(std::move(body));
             body = std::make_unique<BlockStmt>(std::move(for_stmts));

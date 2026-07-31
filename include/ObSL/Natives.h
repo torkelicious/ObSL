@@ -18,31 +18,35 @@
 namespace ObSL {
     class Interpreter;
 
-    template <typename T> struct native_fn_traits;
+    template<typename T>
+    struct native_fn_traits;
 
     // concepts for function traits
-    template <typename F>
-    concept FunctionPointer = std::is_function_v<std::remove_pointer_t<F>>;
+    template<typename F>
+    concept FunctionPointer = std::is_function_v<std::remove_pointer_t<F> >;
 
-    template <typename F>
+    template<typename F>
     concept MemberFunctionPointer = std::is_member_function_pointer_v<F>;
 
     // for const member functions
-    template <typename R, typename C, typename... Args> struct native_fn_traits<R (C::*)(Args...) const> {
+    template<typename R, typename C, typename... Args>
+    struct native_fn_traits<R (C::*)(Args...) const> {
         using return_type = R;
         static constexpr int arity = sizeof...(Args);
         using args_tuple = std::tuple<std::decay_t<Args>...>;
     };
 
     // for non-const member functions
-    template <typename R, typename C, typename... Args> struct native_fn_traits<R (C::*)(Args...)> {
+    template<typename R, typename C, typename... Args>
+    struct native_fn_traits<R (C::*)(Args...)> {
         using return_type = R;
         static constexpr int arity = sizeof...(Args);
         using args_tuple = std::tuple<std::decay_t<Args>...>;
     };
 
     // free function pointers
-    template <typename R, typename... Args> struct native_fn_traits<R (*)(Args...)> {
+    template<typename R, typename... Args>
+    struct native_fn_traits<R (*)(Args...)> {
         using return_type = R;
         static constexpr int arity = sizeof...(Args);
         using args_tuple = std::tuple<std::decay_t<Args>...>;
@@ -62,7 +66,8 @@ namespace ObSL {
         [[nodiscard]] const char *what() const noexcept override { return "Return signal"; }
     };
 
-    template <typename T> consteval std::string_view native_type_name() {
+    template<typename T>
+    consteval std::string_view native_type_name() {
         if constexpr (std::is_same_v<T, bool>)
             return "bool";
         else if constexpr (std::is_same_v<T, double>)
@@ -86,7 +91,7 @@ namespace ObSL {
 
         RuntimeError(const Token &token, std::string_view message)
             : std::runtime_error(
-                      std::format("[Line {}:{}] Error at '{}': {}", token.line, token.column, token.lexeme, message)),
+                  std::format("[Line {}:{}] Error at '{}': {}", token.line, token.column, token.lexeme, message)),
               token(token) {
         }
 
@@ -133,26 +138,27 @@ namespace ObSL {
         void mark() override { is_marked = true; }
     };
 
-    template <typename TargetType> static void validate_native_arg(const Value &arg, const size_t index) {
+    template<typename TargetType>
+    static void validate_native_arg(const Value &arg, const size_t index) {
         using DecayedTarget = std::decay_t<TargetType>;
         if constexpr (std::is_same_v<DecayedTarget, Value>) {
         } else {
             if (!std::holds_alternative<DecayedTarget>(arg)) {
                 throw NativeTypeError(std::format(
-                        "Argument {}: expected type '{}', got '{}'.", index, native_type_name<DecayedTarget>(),
-                        std::visit([]<typename T>(const T &)
-                               -> std::string_view {
-                                       return native_type_name<std::decay_t<T>>();
-                                   },
-                                   arg)));
+                    "Argument {}: expected type '{}', got '{}'.", index, native_type_name<DecayedTarget>(),
+                    std::visit([]<typename T>(const T &)
+                           -> std::string_view {
+                                   return native_type_name<std::decay_t<T> >();
+                               },
+                               arg)));
             }
         }
     }
 
-    template <typename F, typename Traits, size_t... Is>
+    template<typename F, typename Traits, size_t... Is>
     static Value call_native_helper(const F &body, const std::vector<Value> &args, std::index_sequence<Is...>) {
         using ArgsTuple = Traits::args_tuple;
-        (validate_native_arg<std::tuple_element_t<Is, ArgsTuple>>(args[Is], Is), ...);
+        (validate_native_arg<std::tuple_element_t<Is, ArgsTuple> >(args[Is], Is), ...);
 
         auto unpack = []<typename T>(const Value &v) -> decltype(auto) {
             using DecayedT = std::decay_t<T>;
@@ -164,10 +170,10 @@ namespace ObSL {
         };
 
         if constexpr (std::is_void_v<typename Traits::return_type>) {
-            body(unpack.template operator()<std::tuple_element_t<Is, ArgsTuple>>(args[Is])...);
+            body(unpack.template operator()<std::tuple_element_t<Is, ArgsTuple> >(args[Is])...);
             return std::monostate{};
         } else {
-            return body(unpack.template operator()<std::tuple_element_t<Is, ArgsTuple>>(args[Is])...);
+            return body(unpack.template operator()<std::tuple_element_t<Is, ArgsTuple> >(args[Is])...);
         }
     }
 } // namespace ObSL

@@ -14,7 +14,7 @@ namespace ObSL {
     };
 
     class Environment {
-        std::unordered_map<std::string, Value, StringHash, std::equal_to<>> values;
+        std::unordered_map<std::string, Value, StringHash, std::equal_to<> > values;
         std::shared_ptr<Environment> enclosing;
 
     public:
@@ -30,7 +30,9 @@ namespace ObSL {
             enclosing = std::move(new_enclosing);
         }
 
-        const std::unordered_map<std::string, Value, StringHash, std::equal_to<>> &get_values() const { return values; }
+        const std::unordered_map<std::string, Value, StringHash, std::equal_to<> > &get_values() const {
+            return values;
+        }
 
         void define(std::string_view name, const Value &value);
 
@@ -47,7 +49,7 @@ namespace ObSL {
         void assign(std::string_view name, const Value &value);
 
         void mark() {
-            for (auto &val : values | std::views::values) {
+            for (auto &val: values | std::views::values) {
                 mark_value(val);
             }
             if (enclosing) {

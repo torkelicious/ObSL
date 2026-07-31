@@ -65,7 +65,7 @@ namespace ObSL {
 
             // base^exponent
             interpreter.define_native(
-                    "pow", [](const double base, const double exponent) -> double { return std::pow(base, exponent); });
+                "pow", [](const double base, const double exponent) -> double { return std::pow(base, exponent); });
 
             // rand num (returns a double between 0.0 and 1.0)
             interpreter.define_native("random", []() -> double {
@@ -129,7 +129,7 @@ namespace ObSL {
         void register_modules(Interpreter &interpreter) override {
             // string length
             interpreter.define_native(
-                    "len", [](const std::string &str) -> double { return static_cast<double>(str.length()); });
+                "len", [](const std::string &str) -> double { return static_cast<double>(str.length()); });
 
             // convert to lowercase
             interpreter.define_native("to_lower", [](std::string str) -> std::string {
@@ -155,15 +155,15 @@ namespace ObSL {
 
             // pulls a substring out using native double types
             interpreter.define_native(
-                    "substring", [](const std::string &str, const double start, const double length) -> std::string {
-                        if (std::isnan(start) || std::isnan(length) || str.empty())
-                            return "";
-                        const double safe_start = std::clamp(start, 0.0, static_cast<double>(str.length()));
-                        const auto s = static_cast<size_t>(safe_start);
-                        const double safe_len = std::clamp(length, 0.0, static_cast<double>(str.length() - s));
-                        const auto len = static_cast<size_t>(safe_len);
-                        return str.substr(s, len);
-                    });
+                "substring", [](const std::string &str, const double start, const double length) -> std::string {
+                    if (std::isnan(start) || std::isnan(length) || str.empty())
+                        return "";
+                    const double safe_start = std::clamp(start, 0.0, static_cast<double>(str.length()));
+                    const auto s = static_cast<size_t>(safe_start);
+                    const double safe_len = std::clamp(length, 0.0, static_cast<double>(str.length() - s));
+                    const auto len = static_cast<size_t>(safe_len);
+                    return str.substr(s, len);
+                });
 
             // trims whitespace from both ends
             interpreter.define_native("trim", [](std::string str) -> std::string {
@@ -176,17 +176,17 @@ namespace ObSL {
             });
 
             interpreter.define_native(
-                    "replace",
-                    [](std::string str, const std::string &search_for, const std::string &replace_with) -> std::string {
-                        if (search_for.empty())
-                            return str;
-                        size_t pos = 0;
-                        while ((pos = str.find(search_for, pos)) != std::string::npos) {
-                            str.replace(pos, search_for.length(), replace_with);
-                            pos += replace_with.length();
-                        }
+                "replace",
+                [](std::string str, const std::string &search_for, const std::string &replace_with) -> std::string {
+                    if (search_for.empty())
                         return str;
-                    });
+                    size_t pos = 0;
+                    while ((pos = str.find(search_for, pos)) != std::string::npos) {
+                        str.replace(pos, search_for.length(), replace_with);
+                        pos += replace_with.length();
+                    }
+                    return str;
+                });
         }
     };
 
@@ -300,30 +300,30 @@ namespace ObSL {
                                               return std::regex_replace(text, std::regex(pattern), replacement);
                                           } catch (const std::regex_error &e) {
                                               throw std::runtime_error(
-                                                      std::format("Regex Pattern Error: {}", e.what()));
+                                                  std::format("Regex Pattern Error: {}", e.what()));
                                           }
                                       });
 
             // finds all matches and returns them as an ObSLArray
             interpreter.define_native(
-                    "regex_find_all",
-                    [&interpreter](const std::string &text, const std::string &pattern) -> ObSLArray * {
-                        try {
-                            const std::regex re(pattern);
-                            const auto arr = interpreter.gc.allocate<ObSLArray>();
+                "regex_find_all",
+                [&interpreter](const std::string &text, const std::string &pattern) -> ObSLArray * {
+                    try {
+                        const std::regex re(pattern);
+                        const auto arr = interpreter.gc.allocate<ObSLArray>();
 
-                            const auto matches_begin = std::sregex_iterator(text.begin(), text.end(), re);
-                            const auto matches_end = std::sregex_iterator();
+                        const auto matches_begin = std::sregex_iterator(text.begin(), text.end(), re);
+                        const auto matches_end = std::sregex_iterator();
 
-                            for (std::sregex_iterator i = matches_begin; i != matches_end; ++i) {
-                                const std::smatch &match = *i;
-                                arr->elements.emplace_back(match.str());
-                            }
-                            return arr;
-                        } catch (const std::regex_error &e) {
-                            throw std::runtime_error(std::format("Regex Pattern Error: {}", e.what()));
+                        for (std::sregex_iterator i = matches_begin; i != matches_end; ++i) {
+                            const std::smatch &match = *i;
+                            arr->elements.emplace_back(match.str());
                         }
-                    });
+                        return arr;
+                    } catch (const std::regex_error &e) {
+                        throw std::runtime_error(std::format("Regex Pattern Error: {}", e.what()));
+                    }
+                });
         }
     };
 
@@ -334,26 +334,26 @@ namespace ObSL {
             // string type name of any given script value ("null", "number", "string", etc.)
             interpreter.define_native("type_of", [](const Value &val) -> std::string {
                 return std::visit(
-                        []<typename T0>(T0 &&) -> std::string {
-                            using T = std::decay_t<T0>;
-                            if constexpr (std::is_same_v<T, std::monostate>)
-                                return "null";
-                            else if constexpr (std::is_same_v<T, bool>)
-                                return "bool";
-                            else if constexpr (std::is_same_v<T, double>)
-                                return "number";
-                            else if constexpr (std::is_same_v<T, std::string>)
-                                return "string";
-                            else if constexpr (std::is_same_v<T, ObSLCallable *>)
-                                return "callable";
-                            else if constexpr (std::is_same_v<T, ObSLArray *>)
-                                return "array";
-                            else if constexpr (std::is_same_v<T, ObSLObject *>)
-                                return "object";
-                            else
-                                return "unknown";
-                        },
-                        val);
+                    []<typename T0>(T0 &&) -> std::string {
+                        using T = std::decay_t<T0>;
+                        if constexpr (std::is_same_v<T, std::monostate>)
+                            return "null";
+                        else if constexpr (std::is_same_v<T, bool>)
+                            return "bool";
+                        else if constexpr (std::is_same_v<T, double>)
+                            return "number";
+                        else if constexpr (std::is_same_v<T, std::string>)
+                            return "string";
+                        else if constexpr (std::is_same_v<T, ObSLCallable *>)
+                            return "callable";
+                        else if constexpr (std::is_same_v<T, ObSLArray *>)
+                            return "array";
+                        else if constexpr (std::is_same_v<T, ObSLObject *>)
+                            return "object";
+                        else
+                            return "unknown";
+                    },
+                    val);
             });
 
             // ReSharper disable once CppParameterMayBeConstPtrOrRef
@@ -366,7 +366,7 @@ namespace ObSL {
             interpreter.define_native("get_fields", [&interpreter](ObSLObject *obj) -> ObSLArray * {
                 const auto arr = interpreter.gc.allocate<ObSLArray>();
                 if (obj) {
-                    for (const auto &key : obj->fields | std::views::keys) {
+                    for (const auto &key: obj->fields | std::views::keys) {
                         arr->elements.emplace_back(key);
                     }
                 }

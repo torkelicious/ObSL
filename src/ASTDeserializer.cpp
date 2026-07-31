@@ -48,7 +48,7 @@ namespace ObSL {
     static CaseBranch deserialize_case_branch(ASTDeserializer &deser) {
         auto match_value = deser.deserialize_expr();
         const uint32_t count = deser.read<uint32_t>();
-        std::vector<std::unique_ptr<Stmt>> statements;
+        std::vector<std::unique_ptr<Stmt> > statements;
         statements.reserve(count);
         for (uint32_t i = 0; i < count; ++i) {
             statements.push_back(deser.deserialize_stmt());
@@ -73,7 +73,7 @@ namespace ObSL {
                 auto callee = deserialize_expr();
                 Token paren = deserialize_token(*this);
                 const uint32_t argc = read<uint32_t>();
-                std::vector<std::unique_ptr<Expr>> args;
+                std::vector<std::unique_ptr<Expr> > args;
                 args.reserve(argc);
                 for (uint32_t i = 0; i < argc; ++i) {
                     args.push_back(deserialize_expr());
@@ -131,7 +131,7 @@ namespace ObSL {
             }
             case ExprType::Array: {
                 const uint32_t count = read<uint32_t>();
-                std::vector<std::unique_ptr<Expr>> elements;
+                std::vector<std::unique_ptr<Expr> > elements;
                 elements.reserve(count);
                 for (uint32_t i = 0; i < count; ++i) {
                     elements.push_back(deserialize_expr());
@@ -211,7 +211,7 @@ namespace ObSL {
             }
             case StmtType::Block: {
                 const uint32_t count = read<uint32_t>();
-                std::vector<std::unique_ptr<Stmt>> stmts;
+                std::vector<std::unique_ptr<Stmt> > stmts;
                 stmts.reserve(count);
                 for (uint32_t i = 0; i < count; ++i) {
                     stmts.push_back(deserialize_stmt());

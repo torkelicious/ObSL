@@ -7,7 +7,7 @@ namespace ObSL {
     }
 
 
-    void ScriptWorker::execute(const std::vector<std::unique_ptr<Stmt>> &ast, std::shared_ptr<Environment> env) {
+    void ScriptWorker::execute(const std::vector<std::unique_ptr<Stmt> > &ast, std::shared_ptr<Environment> env) {
         auto prev = m_Interpreter.get_current_environment();
         m_Interpreter.set_current_environment(std::move(env));
         m_Interpreter.interpret(ast);

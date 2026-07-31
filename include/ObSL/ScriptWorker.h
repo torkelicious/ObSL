@@ -12,7 +12,7 @@ namespace ObSL {
 
         std::shared_ptr<Environment> copy_globals();
 
-        void execute(const std::vector<std::unique_ptr<Stmt>> &ast, std::shared_ptr<Environment> env);
+        void execute(const std::vector<std::unique_ptr<Stmt> > &ast, std::shared_ptr<Environment> env);
 
         Value GetVal(const std::string &name, const std::shared_ptr<Environment> &env);
 
@@ -21,18 +21,21 @@ namespace ObSL {
         GarbageCollector &gc() { return m_Interpreter.gc; }
         const GarbageCollector &gc() const { return m_Interpreter.gc; }
 
-        template <typename T> void set_frame_context(T *ctx) { m_FrameContext = ctx; }
+        template<typename T>
+        void set_frame_context(T *ctx) { m_FrameContext = ctx; }
 
         void clear_frame_context() { m_FrameContext.reset(); }
 
-        template <typename T> T *frame_context() {
+        template<typename T>
+        T *frame_context() {
             if (m_FrameContext.has_value() && m_FrameContext.type() == typeid(T *)) {
                 return std::any_cast<T *>(m_FrameContext);
             }
             return nullptr;
         }
 
-        template <typename T> const T *frame_context() const {
+        template<typename T>
+        const T *frame_context() const {
             if (m_FrameContext.has_value() && m_FrameContext.type() == typeid(T *)) {
                 return std::any_cast<T *>(m_FrameContext);
             }

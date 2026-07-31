@@ -37,7 +37,8 @@ namespace ObSL {
             }
         }
 
-        template <typename T, typename... Args> T *allocate(Args &&... args) {
+        template<typename T, typename... Args>
+        T *allocate(Args &&... args) {
             if (allocated_objs >= gc_threshold) {
                 collect();
             }

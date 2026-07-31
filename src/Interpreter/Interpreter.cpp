@@ -36,7 +36,7 @@ namespace ObSL {
     std::shared_ptr<Environment> Interpreter::acquire_environment(std::shared_ptr<Environment> enclosing) {
         if (m_EnvPool.empty()) {
             m_EnvPool.resize(kEnvPoolSize);
-            for (auto &entry : m_EnvPool)
+            for (auto &entry: m_EnvPool)
                 entry.env = std::make_unique<Environment>();
         }
         for (size_t i = 0; i < m_EnvPool.size(); ++i) {
@@ -46,22 +46,22 @@ namespace ObSL {
                 auto *pool_alive = &m_PoolAlive;
                 auto *pool = &m_EnvPool;
                 return std::shared_ptr<Environment>(
-                        m_EnvPool[i].env.get(),
-                        [pool_alive, pool, i](Environment *) {
-                            if (pool_alive->load(std::memory_order_acquire)) {
-                                (*pool)[i].in_use = false;
-                                (*pool)[i].env->reset(nullptr);
-                            }
-                        });
+                    m_EnvPool[i].env.get(),
+                    [pool_alive, pool, i](Environment *) {
+                        if (pool_alive->load(std::memory_order_acquire)) {
+                            (*pool)[i].in_use = false;
+                            (*pool)[i].env->reset(nullptr);
+                        }
+                    });
             }
         }
         return std::make_shared<Environment>(std::move(enclosing));
     }
 
     // No mutex: each ScriptWorker owns its Interpreter exclusively.
-    void Interpreter::interpret(const std::vector<std::unique_ptr<Stmt>> &statements) {
+    void Interpreter::interpret(const std::vector<std::unique_ptr<Stmt> > &statements) {
         try {
-            for (const auto &stmt : statements) {
+            for (const auto &stmt: statements) {
                 if (stmt)
                     execute(stmt.get());
             }
@@ -159,7 +159,7 @@ namespace ObSL {
 
         std::vector<Value> arguments;
         arguments.reserve(expr->arguments.size());
-        for (const auto &arg : expr->arguments) {
+        for (const auto &arg: expr->arguments) {
             Value val = evaluate(arg.get());
             scope.protect(val);
             arguments.push_back(val);
@@ -185,22 +185,22 @@ namespace ObSL {
     void Interpreter::execute_print_stmt(const PrintStmt *stmt) {
         Value value = evaluate(stmt->expression.get());
         std::visit(
-                [this]<typename T0>(const T0 &arg) {
-                    using T = std::decay_t<T0>;
-                    if constexpr (std::is_same_v<T, std::monostate>)
-                        m_stdout.get() << "null";
-                    else if constexpr (std::is_same_v<T, bool>)
-                        m_stdout.get() << (arg ? "true" : "false");
-                    else if constexpr (std::is_same_v<T, double> || std::is_same_v<T, std::string>) {
-                        m_stdout.get() << arg;
-                    } else if constexpr (std::is_same_v<T, ObSLCallable *>)
-                        m_stdout.get() << (arg ? arg->to_string() : "null");
-                    else if constexpr (std::is_same_v<T, ObSLArray *>)
-                        m_stdout.get() << (arg ? "[Array]" : "null");
-                    else if constexpr (std::is_same_v<T, ObSLObject *>)
-                        m_stdout.get() << (arg ? "[Object]" : "null");
-                },
-                value);
+            [this]<typename T0>(const T0 &arg) {
+                using T = std::decay_t<T0>;
+                if constexpr (std::is_same_v<T, std::monostate>)
+                    m_stdout.get() << "null";
+                else if constexpr (std::is_same_v<T, bool>)
+                    m_stdout.get() << (arg ? "true" : "false");
+                else if constexpr (std::is_same_v<T, double> || std::is_same_v<T, std::string>) {
+                    m_stdout.get() << arg;
+                } else if constexpr (std::is_same_v<T, ObSLCallable *>)
+                    m_stdout.get() << (arg ? arg->to_string() : "null");
+                else if constexpr (std::is_same_v<T, ObSLArray *>)
+                    m_stdout.get() << (arg ? "[Array]" : "null");
+                else if constexpr (std::is_same_v<T, ObSLObject *>)
+                    m_stdout.get() << (arg ? "[Object]" : "null");
+            },
+            value);
     }
 
     void Interpreter::execute_print_ln_stmt(const PrintlnStmt *stmt) {
@@ -225,7 +225,7 @@ namespace ObSL {
         scope.protect(array);
 
         array->elements.reserve(expr->elements.size());
-        for (const auto &item : expr->elements) {
+        for (const auto &item: expr->elements) {
             Value val = evaluate(item.get());
             scope.protect(val);
             array->elements.push_back(val);
@@ -463,15 +463,15 @@ namespace ObSL {
 
     bool Interpreter::is_equal(const Value &a, const Value &b) {
         return std::visit(
-                [](auto &&arg1, auto &&arg2) {
-                    using T1 = std::decay_t<decltype(arg1)>;
-                    using T2 = std::decay_t<decltype(arg2)>;
-                    if constexpr (std::is_same_v<T1, T2>)
-                        return arg1 == arg2;
-                    else
-                        return false;
-                },
-                a, b);
+            [](auto &&arg1, auto &&arg2) {
+                using T1 = std::decay_t<decltype(arg1)>;
+                using T2 = std::decay_t<decltype(arg2)>;
+                if constexpr (std::is_same_v<T1, T2>)
+                    return arg1 == arg2;
+                else
+                    return false;
+            },
+            a, b);
     }
 
     ModuleLoader Interpreter::createDefaultModuleLoader() {
@@ -515,7 +515,7 @@ namespace ObSL {
             throw RuntimeError(stmt->keyword, std::format("Could not resolve module '{}'.", canonical_path));
         }
 
-        const std::vector<std::unique_ptr<Stmt>> *statements_ptr = nullptr;
+        const std::vector<std::unique_ptr<Stmt> > *statements_ptr = nullptr;
 
         if (result->kind == ModuleResult::Kind::Source) {
             module_sources.push_back(std::move(result->source));
@@ -545,10 +545,10 @@ namespace ObSL {
 
         try {
             environment = module_env;
-            for (const auto &module_stmt : statements | std::views::filter([](auto &s) { return s != nullptr; })) {
+            for (const auto &module_stmt: statements | std::views::filter([](auto &s) { return s != nullptr; })) {
                 execute(module_stmt.get());
             }
-            for (const auto &[name, val] : module_env->get_values()) {
+            for (const auto &[name, val]: module_env->get_values()) {
                 module_obj->fields[name] = val;
             }
             environment = previous_env;
@@ -592,7 +592,7 @@ namespace ObSL {
                                     std::shared_ptr<Environment> block_env) {
         EnvironmentGuard guard(environment, environment);
         environment = std::move(block_env);
-        for (const auto &stmt : statements) {
+        for (const auto &stmt: statements) {
             if (stmt)
                 execute(stmt.get());
         }
@@ -615,13 +615,13 @@ namespace ObSL {
         const Value condition_val = evaluate(stmt->condition.get());
         try {
             const CaseBranch *default_branch = nullptr;
-            for (const auto &case_branch : stmt->cases) {
+            for (const auto &case_branch: stmt->cases) {
                 if (case_branch.match_value == nullptr) {
                     default_branch = &case_branch;
                     continue;
                 }
                 if (Value case_val = evaluate(case_branch.match_value.get()); is_equal(condition_val, case_val)) {
-                    for (const auto &case_stmt :
+                    for (const auto &case_stmt:
                          case_branch.statements | std::views::filter([](auto &s) { return s != nullptr; })) {
                         execute(case_stmt.get());
                     }
@@ -629,7 +629,7 @@ namespace ObSL {
                 }
             }
             if (default_branch != nullptr) {
-                for (const auto &case_stmt :
+                for (const auto &case_stmt:
                      default_branch->statements | std::views::filter([](auto &s) { return s != nullptr; })) {
                     execute(case_stmt.get());
                 }
@@ -651,7 +651,7 @@ namespace ObSL {
     void Interpreter::execute_foreach_stmt(const ForeachStmt *stmt) {
         if (const Value iterable_val = evaluate(stmt->iterable.get());
             std::holds_alternative<ObSLArray *>(iterable_val)) {
-            for (const auto array = std::get<ObSLArray *>(iterable_val); const auto &item : array->elements) {
+            for (const auto array = std::get<ObSLArray *>(iterable_val); const auto &item: array->elements) {
                 auto loop_env = std::make_shared<Environment>(environment);
                 loop_env->define(stmt->loop_var, item);
                 EnvironmentGuard guard(environment, environment);
@@ -752,7 +752,7 @@ namespace ObSL {
 
     int ObSLFunction::min_arity() const {
         int min_args = 0;
-        for (const auto &[name, default_value] : declaration->params) {
+        for (const auto &[name, default_value]: declaration->params) {
             if (default_value == nullptr)
                 min_args++;
         }
