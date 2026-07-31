@@ -6,10 +6,10 @@ namespace ObSL {
     static void serialize_token(ASTSerializer &ser, const Token &token) {
         ser.write(token.type); // TokenType (uint8_t)
         ser.write_string_index(token.lexeme);
-        ser.write(token.line);      // uint16_t
-        ser.write(token.column);    // uint16_t
+        ser.write(token.line); // uint16_t
+        ser.write(token.column); // uint16_t
         ser.write(token.start_pos); // uint32_t
-        ser.write(token.end_pos);   // uint32_t
+        ser.write(token.end_pos); // uint32_t
     }
 
     static void serialize_value(ASTSerializer &ser, const Value &value) {

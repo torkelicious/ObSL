@@ -28,5 +28,3 @@ namespace ObSL {
         static void run_lint(const std::string &path);
     };
 } // ObSL
-
-

@@ -146,10 +146,12 @@ namespace ObSL {
         mutable std::shared_mutex m_modules_mutex;
 
         static constexpr std::size_t kEnvPoolSize = 16;
+
         struct PooledEnv {
             std::unique_ptr<Environment> env;
             bool in_use = false;
         };
+
         std::vector<PooledEnv> m_EnvPool;
         std::atomic<bool> m_PoolAlive{true};
 
@@ -255,7 +257,8 @@ namespace ObSL {
         size_t start_size;
 
         explicit GCProtectScope(Interpreter *interp)
-            : interpreter(interp), start_size(interp->gc_protect_stack.size()) {}
+            : interpreter(interp), start_size(interp->gc_protect_stack.size()) {
+        }
 
         ~GCProtectScope() { interpreter->gc_protect_stack.resize(start_size); }
 
@@ -263,13 +266,13 @@ namespace ObSL {
     };
 
     class ObSLFunction : public ObSLCallable {
-    private:
         const FunctionStmt *declaration;
         std::shared_ptr<Environment> closure;
 
     public:
         ObSLFunction(const FunctionStmt *declaration, std::shared_ptr<Environment> closure)
-            : declaration(declaration), closure(std::move(closure)) {}
+            : declaration(declaration), closure(std::move(closure)) {
+        }
 
         [[nodiscard]] int arity() const override;
 

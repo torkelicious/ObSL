@@ -49,14 +49,15 @@ namespace ObSL {
     };
 
     // runtime Exceptions
-    struct BreakException : public std::exception {
+    struct BreakException : std::exception {
         [[nodiscard]] const char *what() const noexcept override { return "Break signal"; }
     };
 
-    struct ReturnException : public std::exception {
+    struct ReturnException : std::exception {
         Value value;
 
-        explicit ReturnException(Value value) : value(std::move(value)) {}
+        explicit ReturnException(Value value) : value(std::move(value)) {
+        }
 
         [[nodiscard]] const char *what() const noexcept override { return "Return signal"; }
     };
@@ -80,25 +81,27 @@ namespace ObSL {
             return "unknown";
     }
 
-    struct RuntimeError : public std::runtime_error {
+    struct RuntimeError : std::runtime_error {
         Token token;
 
         RuntimeError(const Token &token, std::string_view message)
             : std::runtime_error(
                       std::format("[Line {}:{}] Error at '{}': {}", token.line, token.column, token.lexeme, message)),
-              token(token) {}
+              token(token) {
+        }
 
         RuntimeError(const std::string_view name, std::string_view message)
             : std::runtime_error(std::format("Error: {}", message)),
-              token(Token{TokenType::UNKNOWN_, name, 0, 0, 0, 0}) {}
+              token(Token{TokenType::UNKNOWN_, name, 0, 0, 0, 0}) {
+        }
     };
 
-    struct NativeTypeError : public std::runtime_error {
-        explicit NativeTypeError(const std::string &msg) : std::runtime_error(msg) {}
+    struct NativeTypeError : std::runtime_error {
+        explicit NativeTypeError(const std::string &msg) : std::runtime_error(msg) {
+        }
     };
 
     class NativeFunction : public ObSLCallable {
-    private:
         int m_arity;
         std::function<Value(Interpreter *, const std::vector<Value> &)> m_body;
         std::string m_name;
@@ -106,7 +109,8 @@ namespace ObSL {
     public:
         NativeFunction(const int arity, std::function<Value(Interpreter *, const std::vector<Value> &)> body,
                        std::string name = "native")
-            : m_arity(arity), m_body(std::move(body)), m_name(std::move(name)) {}
+            : m_arity(arity), m_body(std::move(body)), m_name(std::move(name)) {
+        }
 
         [[nodiscard]] int arity() const override { return m_arity; }
 
@@ -137,7 +141,9 @@ namespace ObSL {
                 throw NativeTypeError(std::format(
                         "Argument {}: expected type '{}', got '{}'.", index, native_type_name<DecayedTarget>(),
                         std::visit([]<typename T>(const T &)
-                                           -> std::string_view { return native_type_name<std::decay_t<T>>(); },
+                               -> std::string_view {
+                                       return native_type_name<std::decay_t<T>>();
+                                   },
                                    arg)));
             }
         }

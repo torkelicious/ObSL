@@ -6,7 +6,8 @@
 #include <ObSL/Tokens.h>
 
 namespace ObSL {
-    Parser::Parser(std::vector<Token> tokens) : tokens(std::move(tokens)) {}
+    Parser::Parser(std::vector<Token> tokens) : tokens(std::move(tokens)) {
+    }
 
     std::vector<std::unique_ptr<Stmt>> Parser::parse() {
         std::vector<std::unique_ptr<Stmt>> statements;

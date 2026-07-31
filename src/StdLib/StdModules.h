@@ -170,8 +170,8 @@ namespace ObSL {
                 const auto start =
                         std::ranges::find_if_not(str, [](const unsigned char ch) { return std::isspace(ch); });
                 const auto end = std::find_if_not(str.rbegin(), str.rend(), [](const unsigned char ch) {
-                                     return std::isspace(ch);
-                                 }).base();
+                    return std::isspace(ch);
+                }).base();
                 return start < end ? std::string(start, end) : "";
             });
 

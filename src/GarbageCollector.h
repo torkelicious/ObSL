@@ -18,7 +18,6 @@ namespace ObSL {
     };
 
     class GarbageCollector {
-    private:
         GCObject *first_obj = nullptr;
         size_t allocated_objs = 0;
         size_t gc_threshold = 1000;
@@ -38,7 +37,7 @@ namespace ObSL {
             }
         }
 
-        template<typename T, typename... Args>
+        template <typename T, typename... Args>
         T *allocate(Args &&... args) {
             if (allocated_objs >= gc_threshold) {
                 collect();
@@ -53,7 +52,8 @@ namespace ObSL {
         void collect();
 
         void add_root(GCObject *obj) {
-            if (obj) m_ExternalRoots.push_back(obj);
+            if (obj)
+                m_ExternalRoots.push_back(obj);
         }
 
         void remove_root(GCObject *obj) {
@@ -61,4 +61,3 @@ namespace ObSL {
         }
     };
 } // ObSL
-

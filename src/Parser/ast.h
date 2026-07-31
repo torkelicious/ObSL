@@ -26,7 +26,7 @@ namespace ObSL {
 
     void mark_value(const Value &val);
 
-    struct ObSLObject : public GCObject {
+    struct ObSLObject : GCObject {
         std::unordered_map<std::string, Value> fields;
 
         void mark() override {
@@ -39,7 +39,7 @@ namespace ObSL {
         }
     };
 
-    struct ObSLArray : public GCObject {
+    struct ObSLArray : GCObject {
         std::vector<Value> elements;
 
         void mark() override {
@@ -52,7 +52,7 @@ namespace ObSL {
         }
     };
 
-    struct ObSLCallable : public GCObject {
+    struct ObSLCallable : GCObject {
         ~ObSLCallable() override = default;
 
         [[nodiscard]] virtual int arity() const = 0;
@@ -63,7 +63,8 @@ namespace ObSL {
 
         [[nodiscard]] virtual std::string to_string() const { return "<callable>"; }
 
-        void mark() override {}
+        void mark() override {
+        }
     };
 
     enum class ExprType : uint8_t {
@@ -156,13 +157,14 @@ namespace ObSL {
 
     // Expressions
 
-    struct CallExpr : public Expr {
+    struct CallExpr : Expr {
         std::unique_ptr<Expr> callee;
         Token paren;
         std::vector<std::unique_ptr<Expr>> arguments;
 
         CallExpr(std::unique_ptr<Expr> callee, const Token &paren, std::vector<std::unique_ptr<Expr>> arguments)
-            : callee(std::move(callee)), paren(paren), arguments(std::move(arguments)) {}
+            : callee(std::move(callee)), paren(paren), arguments(std::move(arguments)) {
+        }
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Call; }
 
@@ -177,11 +179,12 @@ namespace ObSL {
         }
     };
 
-    struct LiteralExpr : public Expr {
+    struct LiteralExpr : Expr {
         Token token;
         Value value;
 
-        explicit LiteralExpr(const Token &token, Value value) : token(token), value(std::move(value)) {}
+        explicit LiteralExpr(const Token &token, Value value) : token(token), value(std::move(value)) {
+        }
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Literal; }
 
@@ -209,13 +212,14 @@ namespace ObSL {
         }
     };
 
-    struct BinaryExpr : public Expr {
+    struct BinaryExpr : Expr {
         std::unique_ptr<Expr> left;
         TokenType oprt_type;
         std::unique_ptr<Expr> right;
 
         BinaryExpr(std::unique_ptr<Expr> left, const Token &oprt, std::unique_ptr<Expr> right)
-            : left(std::move(left)), oprt_type(oprt.type), right(std::move(right)) {}
+            : left(std::move(left)), oprt_type(oprt.type), right(std::move(right)) {
+        }
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Binary; }
 
@@ -224,13 +228,14 @@ namespace ObSL {
         }
     };
 
-    struct LogicalExpr : public Expr {
+    struct LogicalExpr : Expr {
         std::unique_ptr<Expr> left;
         TokenType oprt_type;
         std::unique_ptr<Expr> right;
 
         LogicalExpr(std::unique_ptr<Expr> left, const Token &oprt, std::unique_ptr<Expr> right)
-            : left(std::move(left)), oprt_type(oprt.type), right(std::move(right)) {}
+            : left(std::move(left)), oprt_type(oprt.type), right(std::move(right)) {
+        }
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Logical; }
 
@@ -239,21 +244,23 @@ namespace ObSL {
         }
     };
 
-    struct GroupingExpr : public Expr {
+    struct GroupingExpr : Expr {
         std::unique_ptr<Expr> expr;
 
-        explicit GroupingExpr(std::unique_ptr<Expr> expr) : expr(std::move(expr)) {}
+        explicit GroupingExpr(std::unique_ptr<Expr> expr) : expr(std::move(expr)) {
+        }
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Grouping; }
 
         [[nodiscard]] std::string to_string() const override { return std::format("(group {})", expr->to_string()); }
     };
 
-    struct UnaryExpr : public Expr {
+    struct UnaryExpr : Expr {
         TokenType oprt_type;
         std::unique_ptr<Expr> right;
 
-        UnaryExpr(const Token &oprt, std::unique_ptr<Expr> right) : oprt_type(oprt.type), right(std::move(right)) {}
+        UnaryExpr(const Token &oprt, std::unique_ptr<Expr> right) : oprt_type(oprt.type), right(std::move(right)) {
+        }
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Unary; }
 
@@ -262,26 +269,30 @@ namespace ObSL {
         }
     };
 
-    struct VariableExpr : public Expr {
+    struct VariableExpr : Expr {
         std::string_view name;
 
-        explicit VariableExpr(const Token &name) : name(name.lexeme) {}
+        explicit VariableExpr(const Token &name) : name(name.lexeme) {
+        }
 
-        explicit VariableExpr(const std::string_view name) : name(name) {}
+        explicit VariableExpr(const std::string_view name) : name(name) {
+        }
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Variable; }
 
         [[nodiscard]] std::string to_string() const override { return std::format("{}", name); }
     };
 
-    struct AssignmentExpr : public Expr {
+    struct AssignmentExpr : Expr {
         std::string_view name;
         std::unique_ptr<Expr> value;
 
-        AssignmentExpr(const Token &name, std::unique_ptr<Expr> value) : name(name.lexeme), value(std::move(value)) {}
+        AssignmentExpr(const Token &name, std::unique_ptr<Expr> value) : name(name.lexeme), value(std::move(value)) {
+        }
 
         AssignmentExpr(const std::string_view name, std::unique_ptr<Expr> value)
-            : name(name), value(std::move(value)) {}
+            : name(name), value(std::move(value)) {
+        }
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Assignment; }
 
@@ -290,16 +301,18 @@ namespace ObSL {
         }
     };
 
-    struct UpdateExpr : public Expr {
+    struct UpdateExpr : Expr {
         std::string_view name;
         TokenType oprt_type;
         uint8_t is_prefix : 1; // bit field for boolean
 
         UpdateExpr(const std::string_view name, const Token &oprt, const bool prefix)
-            : name(name), oprt_type(oprt.type), is_prefix(prefix) {}
+            : name(name), oprt_type(oprt.type), is_prefix(prefix) {
+        }
 
         UpdateExpr(const Token &name, const Token &oprt, const bool prefix)
-            : name(name.lexeme), oprt_type(oprt.type), is_prefix(prefix) {}
+            : name(name.lexeme), oprt_type(oprt.type), is_prefix(prefix) {
+        }
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Update; }
 
@@ -322,10 +335,11 @@ namespace ObSL {
         }
     };
 
-    struct ArrayExpr : public Expr {
+    struct ArrayExpr : Expr {
         std::vector<std::unique_ptr<Expr>> elements;
 
-        explicit ArrayExpr(std::vector<std::unique_ptr<Expr>> elements) : elements(std::move(elements)) {}
+        explicit ArrayExpr(std::vector<std::unique_ptr<Expr>> elements) : elements(std::move(elements)) {
+        }
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Array; }
 
@@ -346,7 +360,8 @@ namespace ObSL {
         std::unique_ptr<Expr> index;
 
         IndexExpr(std::unique_ptr<Expr> callee, const Token &bracket, std::unique_ptr<Expr> index)
-            : callee(std::move(callee)), bracket(bracket), index(std::move(index)) {}
+            : callee(std::move(callee)), bracket(bracket), index(std::move(index)) {
+        }
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Index; }
 
@@ -355,7 +370,7 @@ namespace ObSL {
         }
     };
 
-    struct IndexAssignmentExpr : public Expr {
+    struct IndexAssignmentExpr : Expr {
         std::unique_ptr<Expr> callee;
         Token bracket;
         std::unique_ptr<Expr> index;
@@ -363,7 +378,8 @@ namespace ObSL {
 
         IndexAssignmentExpr(std::unique_ptr<Expr> callee, const Token &bracket, std::unique_ptr<Expr> index,
                             std::unique_ptr<Expr> value)
-            : callee(std::move(callee)), bracket(bracket), index(std::move(index)), value(std::move(value)) {}
+            : callee(std::move(callee)), bracket(bracket), index(std::move(index)), value(std::move(value)) {
+        }
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::IndexAssignment; }
 
@@ -372,11 +388,12 @@ namespace ObSL {
         }
     };
 
-    struct GetExpr : public Expr {
+    struct GetExpr : Expr {
         std::unique_ptr<Expr> obj;
         std::string_view name;
 
-        GetExpr(std::unique_ptr<Expr> obj, const Token &name) : obj(std::move(obj)), name(name.lexeme) {}
+        GetExpr(std::unique_ptr<Expr> obj, const Token &name) : obj(std::move(obj)), name(name.lexeme) {
+        }
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Get; }
 
@@ -385,16 +402,18 @@ namespace ObSL {
         }
     };
 
-    struct SetExpr : public Expr {
+    struct SetExpr : Expr {
         std::unique_ptr<Expr> obj;
         std::string_view name;
         std::unique_ptr<Expr> value;
 
         SetExpr(std::unique_ptr<Expr> obj, const std::string_view name, std::unique_ptr<Expr> value)
-            : obj(std::move(obj)), name(name), value(std::move(value)) {}
+            : obj(std::move(obj)), name(name), value(std::move(value)) {
+        }
 
         SetExpr(std::unique_ptr<Expr> obj, const Token &name, std::unique_ptr<Expr> value)
-            : obj(std::move(obj)), name(name.lexeme), value(std::move(value)) {}
+            : obj(std::move(obj)), name(name.lexeme), value(std::move(value)) {
+        }
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Set; }
 
@@ -403,12 +422,13 @@ namespace ObSL {
         }
     };
 
-    struct TypeCheckExpr : public Expr {
+    struct TypeCheckExpr : Expr {
         std::unique_ptr<Expr> left;
         std::string type_name;
 
         TypeCheckExpr(std::unique_ptr<Expr> left, std::string type_name)
-            : left(std::move(left)), type_name(std::move(type_name)) {}
+            : left(std::move(left)), type_name(std::move(type_name)) {
+        }
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::TypeCheck; }
 
@@ -419,20 +439,22 @@ namespace ObSL {
 
     // Statements
 
-    struct UsingStmt : public Stmt {
+    struct UsingStmt : Stmt {
         std::string path;
 
-        UsingStmt(const Token & /*keyword*/, std::string path) : path(std::move(path)) {}
+        UsingStmt(const Token & /*keyword*/, std::string path) : path(std::move(path)) {
+        }
 
         [[nodiscard]] StmtType type() const noexcept override { return StmtType::Using; }
 
         [[nodiscard]] std::string to_string() const override { return std::format("[UsingStmt: {}]\n", path); }
     };
 
-    struct ExpressionStmt : public Stmt {
+    struct ExpressionStmt : Stmt {
         std::unique_ptr<Expr> expression;
 
-        explicit ExpressionStmt(std::unique_ptr<Expr> expr) : expression(std::move(expr)) {}
+        explicit ExpressionStmt(std::unique_ptr<Expr> expr) : expression(std::move(expr)) {
+        }
 
         [[nodiscard]] StmtType type() const noexcept override { return StmtType::Expression; }
 
@@ -441,10 +463,11 @@ namespace ObSL {
         }
     };
 
-    struct PrintStmt : public Stmt {
+    struct PrintStmt : Stmt {
         std::unique_ptr<Expr> expression;
 
-        PrintStmt(const Token & /*keyword*/, std::unique_ptr<Expr> expr) : expression(std::move(expr)) {}
+        PrintStmt(const Token & /*keyword*/, std::unique_ptr<Expr> expr) : expression(std::move(expr)) {
+        }
 
         [[nodiscard]] StmtType type() const noexcept override { return StmtType::Print; }
 
@@ -453,10 +476,11 @@ namespace ObSL {
         }
     };
 
-    struct PrintlnStmt : public Stmt {
+    struct PrintlnStmt : Stmt {
         std::unique_ptr<Expr> expression;
 
-        PrintlnStmt(const Token & /*keyword*/, std::unique_ptr<Expr> expr) : expression(std::move(expr)) {}
+        PrintlnStmt(const Token & /*keyword*/, std::unique_ptr<Expr> expr) : expression(std::move(expr)) {
+        }
 
         [[nodiscard]] StmtType type() const noexcept override { return StmtType::Println; }
 
@@ -465,10 +489,11 @@ namespace ObSL {
         }
     };
 
-    struct BlockStmt : public Stmt {
+    struct BlockStmt : Stmt {
         std::vector<std::unique_ptr<Stmt>> statements;
 
-        explicit BlockStmt(std::vector<std::unique_ptr<Stmt>> stmts) : statements(std::move(stmts)) {}
+        explicit BlockStmt(std::vector<std::unique_ptr<Stmt>> stmts) : statements(std::move(stmts)) {
+        }
 
         [[nodiscard]] StmtType type() const noexcept override { return StmtType::Block; }
 
@@ -488,30 +513,33 @@ namespace ObSL {
         Param() = default;
 
         Param(const Token &name, std::unique_ptr<Expr> default_value)
-            : name(name.lexeme), default_value(std::move(default_value)) {}
+            : name(name.lexeme), default_value(std::move(default_value)) {
+        }
     };
 
-    struct FunctionStmt : public Stmt {
+    struct FunctionStmt : Stmt {
         std::string_view name;
         std::vector<Param> params;
         std::unique_ptr<BlockStmt> body;
 
         FunctionStmt(const Token &name, std::vector<Param> params, std::unique_ptr<BlockStmt> body)
-            : name(name.lexeme), params(std::move(params)), body(std::move(body)) {}
+            : name(name.lexeme), params(std::move(params)), body(std::move(body)) {
+        }
 
         [[nodiscard]] StmtType type() const noexcept override { return StmtType::Function; }
 
         [[nodiscard]] std::string to_string() const override { return std::format("[FunctionStmt: {}]", name); }
     };
 
-    struct IfStmt : public Stmt {
+    struct IfStmt : Stmt {
         std::unique_ptr<Expr> condition;
         std::unique_ptr<Stmt> then_branch;
         std::unique_ptr<Stmt> else_branch;
 
         IfStmt(std::unique_ptr<Expr> condition, std::unique_ptr<Stmt> then_branch, std::unique_ptr<Stmt> else_branch)
             : condition(std::move(condition)), then_branch(std::move(then_branch)),
-              else_branch(std::move(else_branch)) {}
+              else_branch(std::move(else_branch)) {
+        }
 
         [[nodiscard]] StmtType type() const noexcept override { return StmtType::If; }
 
@@ -526,15 +554,17 @@ namespace ObSL {
         std::vector<std::unique_ptr<Stmt>> statements;
 
         CaseBranch(std::unique_ptr<Expr> match_value, std::vector<std::unique_ptr<Stmt>> statements)
-            : match_value(std::move(match_value)), statements(std::move(statements)) {}
+            : match_value(std::move(match_value)), statements(std::move(statements)) {
+        }
     };
 
-    struct SwitchStmt : public Stmt {
+    struct SwitchStmt : Stmt {
         std::unique_ptr<Expr> condition;
         std::vector<CaseBranch> cases;
 
         SwitchStmt(std::unique_ptr<Expr> condition, std::vector<CaseBranch> cases)
-            : condition(std::move(condition)), cases(std::move(cases)) {}
+            : condition(std::move(condition)), cases(std::move(cases)) {
+        }
 
         [[nodiscard]] StmtType type() const noexcept override { return StmtType::Switch; }
 
@@ -543,12 +573,13 @@ namespace ObSL {
         }
     };
 
-    struct WhileStmt : public Stmt {
+    struct WhileStmt : Stmt {
         std::unique_ptr<Expr> condition;
         std::unique_ptr<Stmt> body;
 
         WhileStmt(std::unique_ptr<Expr> condition, std::unique_ptr<Stmt> body)
-            : condition(std::move(condition)), body(std::move(body)) {}
+            : condition(std::move(condition)), body(std::move(body)) {
+        }
 
         [[nodiscard]] StmtType type() const noexcept override { return StmtType::While; }
 
@@ -557,13 +588,14 @@ namespace ObSL {
         }
     };
 
-    struct ForeachStmt : public Stmt {
+    struct ForeachStmt : Stmt {
         std::string_view loop_var;
         std::unique_ptr<Expr> iterable;
         std::unique_ptr<Stmt> body;
 
         ForeachStmt(const Token &loop_var, std::unique_ptr<Expr> iterable, std::unique_ptr<Stmt> body)
-            : loop_var(loop_var.lexeme), iterable(std::move(iterable)), body(std::move(body)) {}
+            : loop_var(loop_var.lexeme), iterable(std::move(iterable)), body(std::move(body)) {
+        }
 
         [[nodiscard]] StmtType type() const noexcept override { return StmtType::Foreach; }
 
@@ -573,10 +605,11 @@ namespace ObSL {
         }
     };
 
-    struct ReturnStmt : public Stmt {
+    struct ReturnStmt : Stmt {
         std::unique_ptr<Expr> value;
 
-        ReturnStmt(const Token & /*keyword*/, std::unique_ptr<Expr> value) : value(std::move(value)) {}
+        ReturnStmt(const Token & /*keyword*/, std::unique_ptr<Expr> value) : value(std::move(value)) {
+        }
 
         [[nodiscard]] StmtType type() const noexcept override { return StmtType::Return; }
 
@@ -585,20 +618,22 @@ namespace ObSL {
         }
     };
 
-    struct BreakStmt : public Stmt {
-        explicit BreakStmt(const Token & /*keyword*/) {}
+    struct BreakStmt : Stmt {
+        explicit BreakStmt(const Token & /*keyword*/) {
+        }
 
         [[nodiscard]] StmtType type() const noexcept override { return StmtType::Break; }
 
         [[nodiscard]] std::string to_string() const override { return "[BreakStmt]\n"; }
     };
 
-    struct VarStmt : public Stmt {
+    struct VarStmt : Stmt {
         std::string_view name;
         std::unique_ptr<Expr> initializer;
 
         VarStmt(const Token &name, std::unique_ptr<Expr> initializer)
-            : name(name.lexeme), initializer(std::move(initializer)) {}
+            : name(name.lexeme), initializer(std::move(initializer)) {
+        }
 
         [[nodiscard]] StmtType type() const noexcept override { return StmtType::Var; }
 
@@ -608,14 +643,15 @@ namespace ObSL {
         }
     };
 
-    struct TryCatchStmt : public Stmt {
+    struct TryCatchStmt : Stmt {
         std::unique_ptr<BlockStmt> try_body;
         std::string_view exception_var;
         std::unique_ptr<BlockStmt> catch_body;
 
         TryCatchStmt(std::unique_ptr<BlockStmt> try_body, const Token &exception_var,
                      std::unique_ptr<BlockStmt> catch_body)
-            : try_body(std::move(try_body)), exception_var(exception_var.lexeme), catch_body(std::move(catch_body)) {}
+            : try_body(std::move(try_body)), exception_var(exception_var.lexeme), catch_body(std::move(catch_body)) {
+        }
 
         [[nodiscard]] StmtType type() const noexcept override { return StmtType::TryCatch; }
 
@@ -630,20 +666,22 @@ namespace ObSL {
         std::unique_ptr<Expr> default_value;
     };
 
-    struct StructStmt : public Stmt {
+    struct StructStmt : Stmt {
         Token name;
         std::vector<StructField> fields;
 
-        StructStmt(const Token &name, std::vector<StructField> fields) : name(name), fields(std::move(fields)) {}
+        StructStmt(const Token &name, std::vector<StructField> fields) : name(name), fields(std::move(fields)) {
+        }
 
         [[nodiscard]] StmtType type() const noexcept override { return StmtType::Struct; }
         [[nodiscard]] std::string to_string() const override { return std::format("[StructStmt: {}]\n", name.lexeme); }
     };
 
-    struct ObSLStruct : public ObSLCallable {
+    struct ObSLStruct : ObSLCallable {
         const StructStmt *declaration;
 
-        explicit ObSLStruct(const StructStmt *declaration) : declaration(declaration) {}
+        explicit ObSLStruct(const StructStmt *declaration) : declaration(declaration) {
+        }
 
         void mark() override { is_marked = true; }
 

@@ -9,7 +9,6 @@
 
 namespace ObSL {
     class ASTDeserializer {
-    private:
         const uint8_t *m_ptr;
         const uint8_t *m_end;
         const std::vector<std::string> &m_pool;
@@ -34,7 +33,8 @@ namespace ObSL {
         }
 
         ASTDeserializer(const uint8_t *data, size_t size, const std::vector<std::string> &pool)
-            : m_ptr(data), m_end(data + size), m_pool(pool) {}
+            : m_ptr(data), m_end(data + size), m_pool(pool) {
+        }
 
         std::unique_ptr<Expr> deserialize_expr();
 

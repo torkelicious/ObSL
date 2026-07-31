@@ -18,7 +18,6 @@ namespace ObSL {
     };
 
     class GarbageCollector {
-    private:
         GCObject *first_obj = nullptr;
         size_t allocated_objs = 0;
         size_t gc_threshold = 1000;
@@ -26,7 +25,8 @@ namespace ObSL {
         std::vector<GCObject *> m_ExternalRoots;
 
     public:
-        explicit GarbageCollector(Interpreter *interpreter) : interpreter(interpreter) {}
+        explicit GarbageCollector(Interpreter *interpreter) : interpreter(interpreter) {
+        }
 
         ~GarbageCollector() {
             const GCObject *obj = first_obj;
@@ -37,7 +37,7 @@ namespace ObSL {
             }
         }
 
-        template <typename T, typename... Args> T *allocate(Args &&...args) {
+        template <typename T, typename... Args> T *allocate(Args &&... args) {
             if (allocated_objs >= gc_threshold) {
                 collect();
             }

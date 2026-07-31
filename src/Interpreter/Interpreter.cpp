@@ -46,13 +46,13 @@ namespace ObSL {
                 auto *pool_alive = &m_PoolAlive;
                 auto *pool = &m_EnvPool;
                 return std::shared_ptr<Environment>(
-                    m_EnvPool[i].env.get(),
-                    [pool_alive, pool, i](Environment *) {
-                        if (pool_alive->load(std::memory_order_acquire)) {
-                            (*pool)[i].in_use = false;
-                            (*pool)[i].env->reset(nullptr);
-                        }
-                    });
+                        m_EnvPool[i].env.get(),
+                        [pool_alive, pool, i](Environment *) {
+                            if (pool_alive->load(std::memory_order_acquire)) {
+                                (*pool)[i].in_use = false;
+                                (*pool)[i].env->reset(nullptr);
+                            }
+                        });
             }
         }
         return std::make_shared<Environment>(std::move(enclosing));

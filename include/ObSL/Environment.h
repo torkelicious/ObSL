@@ -14,14 +14,14 @@ namespace ObSL {
     };
 
     class Environment {
-    private:
         std::unordered_map<std::string, Value, StringHash, std::equal_to<>> values;
         std::shared_ptr<Environment> enclosing;
 
     public:
         Environment() = default;
 
-        explicit Environment(const std::shared_ptr<Environment> &enclosing) : enclosing(enclosing) {}
+        explicit Environment(const std::shared_ptr<Environment> &enclosing) : enclosing(enclosing) {
+        }
 
         void clear() { values.clear(); }
 
