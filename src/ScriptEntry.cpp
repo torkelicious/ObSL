@@ -82,11 +82,20 @@ namespace ObSL {
         constexpr std::string_view RESET = "\033[0m";
 
         try {
-            Lexer lexer(source);
-            const auto tokens = lexer.tokenize();
-            Parser parser(tokens);
-            const auto statements = parser.parse();
-            m_interpreter.interpret(statements);
+            if (is_repl) {
+                m_repl_sources.push_back(source);
+                Lexer lexer(m_repl_sources.back());
+                const auto tokens = lexer.tokenize();
+                Parser parser(tokens);
+                auto &retained = m_repl_asts.emplace_back(parser.parse());
+                m_interpreter.interpret(retained);
+            } else {
+                Lexer lexer(source);
+                const auto tokens = lexer.tokenize();
+                Parser parser(tokens);
+                const auto statements = parser.parse();
+                m_interpreter.interpret(statements);
+            }
         } catch (const std::exception &e) {
             if (is_repl) {
                 std::cout << RED << "Error: " << e.what() << RESET << "\n";
