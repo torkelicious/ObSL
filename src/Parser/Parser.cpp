@@ -72,7 +72,6 @@ namespace ObSL {
             const Token equals = previous();
             auto value = parse_assignment();
             if (const auto *var_expr = dynamic_cast<VariableExpr *>(expr.get())) {
-                std::string_view name = var_expr->name;
                 if (equals.type != TokenType::ASSIGN) {
                     TokenType binary_op = {};
                     std::string_view lexeme;
@@ -108,10 +107,10 @@ namespace ObSL {
                         lexeme = ">>";
                     }
                     Token op_token = {binary_op, lexeme, equals.line, equals.column, equals.start_pos, equals.end_pos};
-                    auto left_var = std::make_unique<VariableExpr>(name);
+                    auto left_var = std::make_unique<VariableExpr>(var_expr->token);
                     value = std::make_unique<BinaryExpr>(std::move(left_var), op_token, std::move(value));
                 }
-                return std::make_unique<AssignmentExpr>(name, std::move(value));
+                return std::make_unique<AssignmentExpr>(var_expr->token, std::move(value));
             }
             if (auto *index_expr = dynamic_cast<IndexExpr *>(expr.get())) {
                 if (equals.type != TokenType::ASSIGN) {
@@ -292,7 +291,7 @@ namespace ObSL {
         if (match({TokenType::PLUS_PLUS, TokenType::MINUS_MINUS})) {
             Token op = previous();
             if (const auto *var_expr = dynamic_cast<VariableExpr *>(expr.get())) {
-                return std::make_unique<UpdateExpr>(var_expr->name, op, false);
+                return std::make_unique<UpdateExpr>(var_expr->token, op, false);
             }
             throw RuntimeError(op, "Invalid target for postfix operator.");
         }
@@ -696,7 +695,7 @@ namespace ObSL {
                 default_val = parse_expression();
             }
             consume(TokenType::SEMICOLON, "Expect ';' after field declaration.");
-            fields.push_back(StructField{field_name, std::move(default_val)});
+            fields.push_back(StructField{std::string(field_name.lexeme), std::move(default_val)});
         }
         consume(TokenType::RIGHT_BRACE, "Expect '}' after struct body.");
         return std::make_unique<StructStmt>(name, std::move(fields));

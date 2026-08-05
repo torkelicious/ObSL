@@ -1,4 +1,5 @@
 #include <ObSL/Environment.h>
+#include <ObSL/Natives.h>
 #include <stdexcept>
 #include <format>
 
@@ -14,7 +15,7 @@ namespace ObSL {
         if (enclosing) {
             return enclosing->get(name);
         }
-        throw std::runtime_error(std::format("Undefined variable '{}'.", name.lexeme));
+        throw RuntimeError(name, std::format("Undefined variable '{}'.", name.lexeme));
     }
 
     Value Environment::get(const std::string_view name) {
@@ -24,7 +25,7 @@ namespace ObSL {
         if (enclosing) {
             return enclosing->get(name);
         }
-        throw std::runtime_error(std::format("Undefined variable '{}'.", name));
+        throw RuntimeError(name, std::format("Undefined variable '{}'.", name));
     }
 
     void Environment::assign(const Token &name, const Value &value) {
@@ -37,7 +38,7 @@ namespace ObSL {
             enclosing->assign(name, value);
             return;
         }
-        throw std::runtime_error(std::format("Undefined variable '{}'.", name.lexeme));
+        throw RuntimeError(name, std::format("Undefined variable '{}'.", name.lexeme));
     }
 
     void Environment::assign(const std::string_view name, const Value &value) {
@@ -50,7 +51,7 @@ namespace ObSL {
             enclosing->assign(name, value);
             return;
         }
-        throw std::runtime_error(std::format("Undefined variable '{}'.", name));
+        throw RuntimeError(name, std::format("Undefined variable '{}'.", name));
     }
 
     const Value &Environment::get_ref(const Token &name) const {
@@ -60,7 +61,7 @@ namespace ObSL {
         if (enclosing) {
             return enclosing->get_ref(name);
         }
-        throw std::runtime_error(std::format("Undefined variable '{}'.", name.lexeme));
+        throw RuntimeError(name, std::format("Undefined variable '{}'.", name.lexeme));
     }
 
     const Value &Environment::get_ref(const std::string_view name) const {
@@ -70,6 +71,6 @@ namespace ObSL {
         if (enclosing) {
             return enclosing->get_ref(name);
         }
-        throw std::runtime_error(std::format("Undefined variable '{}'.", name));
+        throw RuntimeError(name, std::format("Undefined variable '{}'.", name));
     }
 } // namespace ObSL

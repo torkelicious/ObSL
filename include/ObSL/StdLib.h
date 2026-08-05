@@ -1,17 +1,17 @@
 #pragma once
 
 namespace ObSL {
-    class Interpreter;
+class Interpreter;
 
-    class Lib {
-    public:
-        virtual ~Lib() = default;
+class Lib {
+public:
+  virtual ~Lib() = default;
 
-        virtual void register_modules(Interpreter &interpreter) = 0;
-    };
+  virtual void register_modules(Interpreter &interpreter) = 0;
+};
 
-    class StdLib {
-    public:
-        static void register_modules(Interpreter &interpreter);
-    };
+class StdLib {
+public:
+  static void register_modules(Interpreter &interpreter);
+};
 } // namespace ObSL

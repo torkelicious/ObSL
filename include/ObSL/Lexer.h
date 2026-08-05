@@ -1,38 +1,38 @@
 #pragma once
 
-#include <vector>
-#include <string_view>
 #include <ObSL/Tokens.h>
+#include <string_view>
+#include <vector>
 
 namespace ObSL {
-    class Lexer {
-    public:
-        explicit Lexer(std::string_view source);
+class Lexer {
+public:
+  explicit Lexer(std::string_view source);
 
-        std::vector<Token> tokenize();
+  std::vector<Token> tokenize();
 
-    private:
-        std::string_view source;
-        size_t current = 0;
-        int line = 1;
-        int column = 1;
+private:
+  std::string_view source;
+  size_t current = 0;
+  int line = 1;
+  int column = 1;
 
-        [[nodiscard]] char peek() const;
+  [[nodiscard]] char peek() const;
 
-        [[nodiscard]] char peek_next() const;
+  [[nodiscard]] char peek_next() const;
 
-        char advance();
+  char advance();
 
-        [[nodiscard]] bool is_at_end() const;
+  [[nodiscard]] bool is_at_end() const;
 
-        void skip_whitespace();
+  void skip_whitespace();
 
-        Token read_string();
+  Token read_string();
 
-        Token read_num();
+  Token read_num();
 
-        Token read_identifier_or_keyword();
+  Token read_identifier_or_keyword();
 
-        Token read_operator_or_symbol();
-    };
+  Token read_operator_or_symbol();
+};
 } // namespace ObSL

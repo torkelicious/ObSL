@@ -97,6 +97,13 @@ cmake .. -DOBSL_BUILD_RUNTIME=OFF
 ./obsl_runtime
 ```
 
+Running without arguments starts the REPL. Pass a script path to execute a file, or use `--lint` to syntax-check a file
+and emit a JSON report:
+
+```bash
+./obsl_runtime --lint path/to/script.obsl
+```
+
 > Only available when `OBSL_BUILD_RUNTIME` is `ON` (the default).
 
 ---

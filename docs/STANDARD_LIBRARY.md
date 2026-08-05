@@ -488,12 +488,14 @@ Returns the type of a value.
 **Examples**:
 
 ```obsl
+fn greet() {}
+
 type_of(42)        // "number"
 type_of("hello")   // "string"
 type_of(null)      // "null"
 type_of([])        // "array"
 type_of(Object())  // "object"
-type_of(fn() {})   // "callable"
+type_of(greet)     // "callable"
 ```
 
 ### `get_arity(function)`
@@ -502,7 +504,13 @@ Returns the number of parameters a function expects.
 
 **Parameters**: `function` (callable)
 **Returns**: Number of parameters
-**Example**: `get_arity(fn(a, b) {})` → `2`
+**Example**:
+
+```obsl
+fn add(a, b) {}
+
+get_arity(add)   // 2
+```
 
 ### `has_field(object, fieldName)`
 
@@ -551,7 +559,8 @@ Throws a runtime error.
 ```obsl
 try {
     // Code that might throw
-    var result = risky_operation();
+    var result = to_num("not a number");
+    println "Parsed: " + to_fixed(result, 0);
 } catch (error) {
     // Handle error
     println "Error: " + error;

@@ -1,60 +1,63 @@
 #pragma once
 
+#include <ObSL/Parser/ast.h>
 #include <memory>
-#include <unordered_map>
 #include <string>
 #include <string_view>
-#include <ObSL/Parser/ast.h>
+#include <unordered_map>
 
 namespace ObSL {
-    struct StringHash {
-        using is_transparent = void;
+struct StringHash {
+  using is_transparent = void;
 
-        [[nodiscard]] size_t operator()(const std::string_view txt) const { return std::hash<std::string_view>{}(txt); }
-    };
+  [[nodiscard]] size_t operator()(const std::string_view txt) const {
+    return std::hash<std::string_view>{}(txt);
+  }
+};
 
-    class Environment {
-        std::unordered_map<std::string, Value, StringHash, std::equal_to<> > values;
-        std::shared_ptr<Environment> enclosing;
+class Environment {
+  std::unordered_map<std::string, Value, StringHash, std::equal_to<>> values;
+  std::shared_ptr<Environment> enclosing;
 
-    public:
-        Environment() = default;
+public:
+  Environment() = default;
 
-        explicit Environment(const std::shared_ptr<Environment> &enclosing) : enclosing(enclosing) {
-        }
+  explicit Environment(const std::shared_ptr<Environment> &enclosing)
+      : enclosing(enclosing) {}
 
-        void clear() { values.clear(); }
+  void clear() { values.clear(); }
 
-        void reset(std::shared_ptr<Environment> new_enclosing) {
-            values.clear();
-            enclosing = std::move(new_enclosing);
-        }
+  void reset(std::shared_ptr<Environment> new_enclosing) {
+    values.clear();
+    enclosing = std::move(new_enclosing);
+  }
 
-        const std::unordered_map<std::string, Value, StringHash, std::equal_to<> > &get_values() const {
-            return values;
-        }
+  const std::unordered_map<std::string, Value, StringHash, std::equal_to<>> &
+  get_values() const {
+    return values;
+  }
 
-        void define(std::string_view name, const Value &value);
+  void define(std::string_view name, const Value &value);
 
-        Value get(const Token &name);
+  Value get(const Token &name);
 
-        Value get(std::string_view name);
+  Value get(std::string_view name);
 
-        const Value &get_ref(const Token &name) const;
+  const Value &get_ref(const Token &name) const;
 
-        const Value &get_ref(std::string_view name) const;
+  const Value &get_ref(std::string_view name) const;
 
-        void assign(const Token &name, const Value &value);
+  void assign(const Token &name, const Value &value);
 
-        void assign(std::string_view name, const Value &value);
+  void assign(std::string_view name, const Value &value);
 
-        void mark() {
-            for (auto &val: values | std::views::values) {
-                mark_value(val);
-            }
-            if (enclosing) {
-                enclosing->mark();
-            }
-        }
-    };
+  void mark() {
+    for (auto &val : values | std::views::values) {
+      mark_value(val);
+    }
+    if (enclosing) {
+      enclosing->mark();
+    }
+  }
+};
 } // namespace ObSL
