@@ -31,8 +31,8 @@ namespace ObSL {
             }
         }
         tokens.push_back(Token{
-            TokenType::EOF_, "", static_cast<uint16_t>(line), static_cast<uint16_t>(column),
-            static_cast<uint32_t>(current), static_cast<uint32_t>(current)
+            .type = TokenType::EOF_, .lexeme = "", .line = static_cast<uint16_t>(line), .column = static_cast<uint16_t>(column),
+            .start_pos = static_cast<uint32_t>(current), .end_pos = static_cast<uint32_t>(current)
         });
         return tokens;
     }
@@ -91,12 +91,12 @@ namespace ObSL {
         }
         const auto lexeme = source.substr(number_start, current - number_start);
         return Token{
-            TokenType::NUMBER,
-            lexeme,
-            static_cast<uint16_t>(line),
-            static_cast<uint16_t>(start_col),
-            static_cast<uint32_t>(number_start),
-            static_cast<uint32_t>(current)
+            .type = TokenType::NUMBER,
+            .lexeme = lexeme,
+            .line = static_cast<uint16_t>(line),
+            .column = static_cast<uint16_t>(start_col),
+            .start_pos = static_cast<uint32_t>(number_start),
+            .end_pos = static_cast<uint32_t>(current)
         };
     }
 
@@ -126,12 +126,12 @@ namespace ObSL {
         const TokenType type = it != keywords.end() ? it->second : TokenType::IDENTIFIER;
 
         return Token{
-            type,
-            text,
-            static_cast<uint16_t>(line),
-            static_cast<uint16_t>(start_col),
-            static_cast<uint32_t>(id_start),
-            static_cast<uint32_t>(current)
+            .type = type,
+            .lexeme = text,
+            .line = static_cast<uint16_t>(line),
+            .column = static_cast<uint16_t>(start_col),
+            .start_pos = static_cast<uint32_t>(id_start),
+            .end_pos = static_cast<uint32_t>(current)
         };
     }
 
@@ -164,15 +164,15 @@ namespace ObSL {
         }
         if (is_at_end()) {
             throw RuntimeError(Token{
-                                   TokenType::UNKNOWN_, "", static_cast<uint16_t>(line),
-                                   static_cast<uint16_t>(start_col), static_cast<uint32_t>(current)
+                                   .type = TokenType::UNKNOWN_, .lexeme = "", .line = static_cast<uint16_t>(line),
+                                   .column = static_cast<uint16_t>(start_col), .start_pos = static_cast<uint32_t>(current)
                                },
                                "Unterminated string.");
         }
         advance();
         return Token{
-            TokenType::STRING, std::string_view(&source[start_pos], current - start_pos),
-            static_cast<uint16_t>(line), static_cast<uint16_t>(start_col), static_cast<uint32_t>(current)
+            .type = TokenType::STRING, .lexeme = std::string_view(&source[start_pos], current - start_pos),
+            .line = static_cast<uint16_t>(line), .column = static_cast<uint16_t>(start_col), .start_pos = static_cast<uint32_t>(current)
         };
     }
 
@@ -184,349 +184,349 @@ namespace ObSL {
                 if (peek() == '+') {
                     advance();
                     return Token{
-                        TokenType::PLUS_PLUS,
-                        "++",
-                        static_cast<uint16_t>(line),
-                        static_cast<uint16_t>(start_col),
-                        static_cast<uint32_t>(start_pos),
-                        static_cast<uint32_t>(current)
+                        .type = TokenType::PLUS_PLUS,
+                        .lexeme = "++",
+                        .line = static_cast<uint16_t>(line),
+                        .column = static_cast<uint16_t>(start_col),
+                        .start_pos = static_cast<uint32_t>(start_pos),
+                        .end_pos = static_cast<uint32_t>(current)
                     };
                 }
                 if (peek() == '=') {
                     advance();
                     return Token{
-                        TokenType::PLUS_EQUAL,
-                        "+=",
-                        static_cast<uint16_t>(line),
-                        static_cast<uint16_t>(start_col),
-                        static_cast<uint32_t>(start_pos),
-                        static_cast<uint32_t>(current)
+                        .type = TokenType::PLUS_EQUAL,
+                        .lexeme = "+=",
+                        .line = static_cast<uint16_t>(line),
+                        .column = static_cast<uint16_t>(start_col),
+                        .start_pos = static_cast<uint32_t>(start_pos),
+                        .end_pos = static_cast<uint32_t>(current)
                     };
                 }
                 return Token{
-                    TokenType::PLUS,
-                    "+",
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::PLUS,
+                    .lexeme = "+",
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
             case '-':
                 if (peek() == '-') {
                     advance();
                     return Token{
-                        TokenType::MINUS_MINUS, "--",
-                        static_cast<uint16_t>(line), static_cast<uint16_t>(start_col),
-                        static_cast<uint32_t>(start_pos), static_cast<uint32_t>(current)
+                        .type = TokenType::MINUS_MINUS, .lexeme = "--",
+                        .line = static_cast<uint16_t>(line), .column = static_cast<uint16_t>(start_col),
+                        .start_pos = static_cast<uint32_t>(start_pos), .end_pos = static_cast<uint32_t>(current)
                     };
                 }
                 if (peek() == '=') {
                     advance();
                     return Token{
-                        TokenType::MINUS_EQUAL, "-=",
-                        static_cast<uint16_t>(line), static_cast<uint16_t>(start_col),
-                        static_cast<uint32_t>(start_pos), static_cast<uint32_t>(current)
+                        .type = TokenType::MINUS_EQUAL, .lexeme = "-=",
+                        .line = static_cast<uint16_t>(line), .column = static_cast<uint16_t>(start_col),
+                        .start_pos = static_cast<uint32_t>(start_pos), .end_pos = static_cast<uint32_t>(current)
                     };
                 }
                 return Token{
-                    TokenType::MINUS,
-                    "-",
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::MINUS,
+                    .lexeme = "-",
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
             case '*':
                 if (peek() == '=') {
                     advance();
                     return Token{
-                        TokenType::STAR_EQUAL,
-                        "*=",
-                        static_cast<uint16_t>(line),
-                        static_cast<uint16_t>(start_col),
-                        static_cast<uint32_t>(start_pos),
-                        static_cast<uint32_t>(current)
+                        .type = TokenType::STAR_EQUAL,
+                        .lexeme = "*=",
+                        .line = static_cast<uint16_t>(line),
+                        .column = static_cast<uint16_t>(start_col),
+                        .start_pos = static_cast<uint32_t>(start_pos),
+                        .end_pos = static_cast<uint32_t>(current)
                     };
                 }
                 return Token{
-                    TokenType::STAR,
-                    "*",
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::STAR,
+                    .lexeme = "*",
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
             case '/':
                 if (peek() == '=') {
                     advance();
                     return Token{
-                        TokenType::SLASH_EQUAL, "/=",
-                        static_cast<uint16_t>(line), static_cast<uint16_t>(start_col),
-                        static_cast<uint32_t>(start_pos), static_cast<uint32_t>(current)
+                        .type = TokenType::SLASH_EQUAL, .lexeme = "/=",
+                        .line = static_cast<uint16_t>(line), .column = static_cast<uint16_t>(start_col),
+                        .start_pos = static_cast<uint32_t>(start_pos), .end_pos = static_cast<uint32_t>(current)
                     };
                 }
                 return Token{
-                    TokenType::SLASH,
-                    "/",
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::SLASH,
+                    .lexeme = "/",
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
             case '%':
                 if (peek() == '=') {
                     advance();
                     return Token{
-                        TokenType::PERCENT_EQUAL, "%=",
-                        static_cast<uint16_t>(line), static_cast<uint16_t>(start_col),
-                        static_cast<uint32_t>(start_pos), static_cast<uint32_t>(current)
+                        .type = TokenType::PERCENT_EQUAL, .lexeme = "%=",
+                        .line = static_cast<uint16_t>(line), .column = static_cast<uint16_t>(start_col),
+                        .start_pos = static_cast<uint32_t>(start_pos), .end_pos = static_cast<uint32_t>(current)
                     };
                 }
                 return Token{
-                    TokenType::PERCENT,
-                    "%",
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::PERCENT,
+                    .lexeme = "%",
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
             case '=':
                 if (peek() == '=') {
                     advance();
                     return Token{
-                        TokenType::EQUAL_EQUAL, "==",
-                        static_cast<uint16_t>(line), static_cast<uint16_t>(start_col),
-                        static_cast<uint32_t>(start_pos), static_cast<uint32_t>(current)
+                        .type = TokenType::EQUAL_EQUAL, .lexeme = "==",
+                        .line = static_cast<uint16_t>(line), .column = static_cast<uint16_t>(start_col),
+                        .start_pos = static_cast<uint32_t>(start_pos), .end_pos = static_cast<uint32_t>(current)
                     };
                 }
                 return Token{
-                    TokenType::ASSIGN,
-                    "=",
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::ASSIGN,
+                    .lexeme = "=",
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
             case '!':
                 if (peek() == '=') {
                     advance();
                     return Token{
-                        TokenType::BANG_EQUAL,
-                        "!=",
-                        static_cast<uint16_t>(line),
-                        static_cast<uint16_t>(start_col),
-                        static_cast<uint32_t>(start_pos),
-                        static_cast<uint32_t>(current)
+                        .type = TokenType::BANG_EQUAL,
+                        .lexeme = "!=",
+                        .line = static_cast<uint16_t>(line),
+                        .column = static_cast<uint16_t>(start_col),
+                        .start_pos = static_cast<uint32_t>(start_pos),
+                        .end_pos = static_cast<uint32_t>(current)
                     };
                 }
                 return Token{
-                    TokenType::BANG,
-                    "!",
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::BANG,
+                    .lexeme = "!",
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
             case '<':
                 if (peek() == '=') {
                     advance();
                     return Token{
-                        TokenType::LESS_EQUAL,
-                        "<=",
-                        static_cast<uint16_t>(line),
-                        static_cast<uint16_t>(start_col),
-                        static_cast<uint32_t>(start_pos),
-                        static_cast<uint32_t>(current)
+                        .type = TokenType::LESS_EQUAL,
+                        .lexeme = "<=",
+                        .line = static_cast<uint16_t>(line),
+                        .column = static_cast<uint16_t>(start_col),
+                        .start_pos = static_cast<uint32_t>(start_pos),
+                        .end_pos = static_cast<uint32_t>(current)
                     };
                 }
                 if (peek() == '<') {
                     advance();
                     return Token{
-                        TokenType::LESS_LESS,
-                        "<<",
-                        static_cast<uint16_t>(line),
-                        static_cast<uint16_t>(start_col),
-                        static_cast<uint32_t>(start_pos),
-                        static_cast<uint32_t>(current)
+                        .type = TokenType::LESS_LESS,
+                        .lexeme = "<<",
+                        .line = static_cast<uint16_t>(line),
+                        .column = static_cast<uint16_t>(start_col),
+                        .start_pos = static_cast<uint32_t>(start_pos),
+                        .end_pos = static_cast<uint32_t>(current)
                     };
                 }
                 return Token{
-                    TokenType::LESS,
-                    "<",
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::LESS,
+                    .lexeme = "<",
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
             case '>':
                 if (peek() == '=') {
                     advance();
                     return Token{
-                        TokenType::GREATER_EQUAL, ">=",
-                        static_cast<uint16_t>(line), static_cast<uint16_t>(start_col),
-                        static_cast<uint32_t>(start_pos), static_cast<uint32_t>(current)
+                        .type = TokenType::GREATER_EQUAL, .lexeme = ">=",
+                        .line = static_cast<uint16_t>(line), .column = static_cast<uint16_t>(start_col),
+                        .start_pos = static_cast<uint32_t>(start_pos), .end_pos = static_cast<uint32_t>(current)
                     };
                 }
                 if (peek() == '>') {
                     advance();
                     return Token{
-                        TokenType::GREATER_GREATER, ">>",
-                        static_cast<uint16_t>(line), static_cast<uint16_t>(start_col),
-                        static_cast<uint32_t>(start_pos), static_cast<uint32_t>(current)
+                        .type = TokenType::GREATER_GREATER, .lexeme = ">>",
+                        .line = static_cast<uint16_t>(line), .column = static_cast<uint16_t>(start_col),
+                        .start_pos = static_cast<uint32_t>(start_pos), .end_pos = static_cast<uint32_t>(current)
                     };
                 }
                 return Token{
-                    TokenType::GREATER,
-                    ">",
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::GREATER,
+                    .lexeme = ">",
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
             case '&':
                 if (peek() == '&') {
                     advance();
                     return Token{
-                        TokenType::AND,
-                        "&&",
-                        static_cast<uint16_t>(line),
-                        static_cast<uint16_t>(start_col),
-                        static_cast<uint32_t>(start_pos),
-                        static_cast<uint32_t>(current)
+                        .type = TokenType::AND,
+                        .lexeme = "&&",
+                        .line = static_cast<uint16_t>(line),
+                        .column = static_cast<uint16_t>(start_col),
+                        .start_pos = static_cast<uint32_t>(start_pos),
+                        .end_pos = static_cast<uint32_t>(current)
                     };
                 }
                 return Token{
-                    TokenType::AMPERSAND,
-                    "&",
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::AMPERSAND,
+                    .lexeme = "&",
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
             case '|':
                 if (peek() == '|') {
                     advance();
                     return Token{
-                        TokenType::OR,
-                        "||",
-                        static_cast<uint16_t>(line),
-                        static_cast<uint16_t>(start_col),
-                        static_cast<uint32_t>(start_pos),
-                        static_cast<uint32_t>(current)
+                        .type = TokenType::OR,
+                        .lexeme = "||",
+                        .line = static_cast<uint16_t>(line),
+                        .column = static_cast<uint16_t>(start_col),
+                        .start_pos = static_cast<uint32_t>(start_pos),
+                        .end_pos = static_cast<uint32_t>(current)
                     };
                 }
                 return Token{
-                    TokenType::PIPE,
-                    "|",
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::PIPE,
+                    .lexeme = "|",
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
             case '^':
                 return Token{
-                    TokenType::CARET,
-                    "^",
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::CARET,
+                    .lexeme = "^",
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
             case '~':
                 return Token{
-                    TokenType::TILDE,
-                    "~",
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::TILDE,
+                    .lexeme = "~",
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
             case '(':
                 return Token{
-                    TokenType::LEFT_PAREN,
-                    "(",
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::LEFT_PAREN,
+                    .lexeme = "(",
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
             case ')':
                 return Token{
-                    TokenType::RIGHT_PAREN, ")",
-                    static_cast<uint16_t>(line), static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos), static_cast<uint32_t>(current)
+                    .type = TokenType::RIGHT_PAREN, .lexeme = ")",
+                    .line = static_cast<uint16_t>(line), .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos), .end_pos = static_cast<uint32_t>(current)
                 };
             case '{':
                 return Token{
-                    TokenType::LEFT_BRACE,
-                    "{",
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::LEFT_BRACE,
+                    .lexeme = "{",
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
             case '}':
                 return Token{
-                    TokenType::RIGHT_BRACE, "}",
-                    static_cast<uint16_t>(line), static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos), static_cast<uint32_t>(current)
+                    .type = TokenType::RIGHT_BRACE, .lexeme = "}",
+                    .line = static_cast<uint16_t>(line), .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos), .end_pos = static_cast<uint32_t>(current)
                 };
             case '[':
                 return Token{
-                    TokenType::LEFT_BRACKET, "[",
-                    static_cast<uint16_t>(line), static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos), static_cast<uint32_t>(current)
+                    .type = TokenType::LEFT_BRACKET, .lexeme = "[",
+                    .line = static_cast<uint16_t>(line), .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos), .end_pos = static_cast<uint32_t>(current)
                 };
             case ']':
                 return Token{
-                    TokenType::RIGHT_BRACKET, "]",
-                    static_cast<uint16_t>(line), static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos), static_cast<uint32_t>(current)
+                    .type = TokenType::RIGHT_BRACKET, .lexeme = "]",
+                    .line = static_cast<uint16_t>(line), .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos), .end_pos = static_cast<uint32_t>(current)
                 };
             case ';':
                 return Token{
-                    TokenType::SEMICOLON,
-                    ";",
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::SEMICOLON,
+                    .lexeme = ";",
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
             case ',':
                 return Token{
-                    TokenType::COMMA,
-                    ",",
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::COMMA,
+                    .lexeme = ",",
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
             case '.':
                 return Token{
-                    TokenType::DOT,
-                    ".",
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::DOT,
+                    .lexeme = ".",
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
             case ':':
                 return Token{
-                    TokenType::COLON,
-                    ":",
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::COLON,
+                    .lexeme = ":",
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
             default:
                 return Token{
-                    TokenType::UNKNOWN_,
-                    std::string_view(&source[start_pos], 1),
-                    static_cast<uint16_t>(line),
-                    static_cast<uint16_t>(start_col),
-                    static_cast<uint32_t>(start_pos),
-                    static_cast<uint32_t>(current)
+                    .type = TokenType::UNKNOWN_,
+                    .lexeme = std::string_view(&source[start_pos], 1),
+                    .line = static_cast<uint16_t>(line),
+                    .column = static_cast<uint16_t>(start_col),
+                    .start_pos = static_cast<uint32_t>(start_pos),
+                    .end_pos = static_cast<uint32_t>(current)
                 };
         }
     }

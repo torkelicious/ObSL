@@ -337,18 +337,18 @@ Value Interpreter::evaluate_binary(const BinaryExpr *expr) {
         std::holds_alternative<double>(rhs)) {
       return std::get<double>(lhs) + std::get<double>(rhs);
     }
-    throw RuntimeError(Token{TokenType::UNKNOWN_, "binary", 0, 0, 0, 0},
+    throw RuntimeError(Token{.type = TokenType::UNKNOWN_, .lexeme = "binary", .line = 0, .column = 0, .start_pos = 0, .end_pos = 0},
                        "Operands must be numbers or strings.");
   case TokenType::SLASH:
     check_number_operands(expr->oprt_type, lhs, rhs);
     if (std::get<double>(rhs) == 0)
-      throw RuntimeError(Token{expr->oprt_type, "", 0, 0, 0, 0},
+      throw RuntimeError(Token{.type = expr->oprt_type, .lexeme = "", .line = 0, .column = 0, .start_pos = 0, .end_pos = 0},
                          "Division by zero.");
     return std::get<double>(lhs) / std::get<double>(rhs);
   case TokenType::PERCENT:
     check_number_operands(expr->oprt_type, lhs, rhs);
     if (std::get<double>(rhs) == 0)
-      throw RuntimeError(Token{expr->oprt_type, "", 0, 0, 0, 0},
+      throw RuntimeError(Token{.type = expr->oprt_type, .lexeme = "", .line = 0, .column = 0, .start_pos = 0, .end_pos = 0},
                          "Modulo by zero.");
     return std::fmod(std::get<double>(lhs), std::get<double>(rhs));
   case TokenType::STAR:
@@ -397,7 +397,7 @@ Value Interpreter::evaluate_unary(const UnaryExpr *expr) {
       return static_cast<double>(
           ~static_cast<int64_t>(std::get<double>(right)));
     }
-    throw RuntimeError(Token{TokenType::UNKNOWN_, "unary", 0, 0, 0, 0},
+    throw RuntimeError(Token{.type = TokenType::UNKNOWN_, .lexeme = "unary", .line = 0, .column = 0, .start_pos = 0, .end_pos = 0},
                        "Operand must be a number.");
   default:
     break;
@@ -458,7 +458,7 @@ Value Interpreter::evaluate_type_check(const TypeCheckExpr *expr) {
     return std::holds_alternative<ObSLObject *>(value);
   }
 
-  throw RuntimeError(Token{TokenType::IS, "is", 0, 0, 0, 0},
+  throw RuntimeError(Token{.type = TokenType::IS, .lexeme = "is", .line = 0, .column = 0, .start_pos = 0, .end_pos = 0},
                      std::format("Unknown type name '{}'.", expr->type_name));
 }
 
@@ -474,14 +474,14 @@ void Interpreter::check_number_operand(const TokenType oprt,
                                        const Value &oprnd) {
   if (std::holds_alternative<double>(oprnd))
     return;
-  throw RuntimeError(Token{oprt, "", 0, 0, 0, 0}, "Operand must be a number.");
+  throw RuntimeError(Token{.type = oprt, .lexeme = "", .line = 0, .column = 0, .start_pos = 0, .end_pos = 0}, "Operand must be a number.");
 }
 
 void Interpreter::check_number_operands(const TokenType oprt, const Value &lhs,
                                         const Value &rhs) {
   if (!std::holds_alternative<double>(lhs) ||
       !std::holds_alternative<double>(rhs)) {
-    throw RuntimeError(Token{oprt, "", 0, 0, 0, 0},
+    throw RuntimeError(Token{.type = oprt, .lexeme = "", .line = 0, .column = 0, .start_pos = 0, .end_pos = 0},
                        "Operands must be numbers.");
   }
 }
@@ -696,7 +696,7 @@ void Interpreter::execute_foreach_stmt(const ForeachStmt *stmt) {
       }
     }
   } else {
-    throw RuntimeError(Token{TokenType::UNKNOWN_, stmt->loop_var, 0, 0, 0, 0},
+    throw RuntimeError(Token{.type = TokenType::UNKNOWN_, .lexeme = stmt->loop_var, .line = 0, .column = 0, .start_pos = 0, .end_pos = 0},
                        "Object is not iterable. Expected an Array.");
   }
 }
@@ -748,7 +748,7 @@ Value Interpreter::evaluate_get(const GetExpr *expr) {
     }
 
     throw RuntimeError(
-        Token{TokenType::IDENTIFIER, expr->name, 0, 0, 0, 0},
+        Token{.type = TokenType::IDENTIFIER, .lexeme = expr->name, .line = 0, .column = 0, .start_pos = 0, .end_pos = 0},
         std::format("Undefined property '{}' on Array.", expr->name));
   }
 
@@ -768,10 +768,10 @@ Value Interpreter::evaluate_get(const GetExpr *expr) {
       return val;
     }
     throw RuntimeError(
-        Token{TokenType::IDENTIFIER, expr->name, 0, 0, 0, 0},
+        Token{.type = TokenType::IDENTIFIER, .lexeme = expr->name, .line = 0, .column = 0, .start_pos = 0, .end_pos = 0},
         std::format("Undefined property '{}' on object.", expr->name));
   }
-  throw RuntimeError(Token{TokenType::IDENTIFIER, expr->name, 0, 0, 0, 0},
+  throw RuntimeError(Token{.type = TokenType::IDENTIFIER, .lexeme = expr->name, .line = 0, .column = 0, .start_pos = 0, .end_pos = 0},
                      " does not contain property.");
 }
 
@@ -781,7 +781,7 @@ Value Interpreter::evaluate_set(const SetExpr *expr) {
   scope.protect(obj);
 
   if (!std::holds_alternative<ObSLObject *>(obj)) {
-    throw RuntimeError(Token{TokenType::IDENTIFIER, expr->name, 0, 0, 0, 0},
+    throw RuntimeError(Token{.type = TokenType::IDENTIFIER, .lexeme = expr->name, .line = 0, .column = 0, .start_pos = 0, .end_pos = 0},
                        "Only objects can have fields assigned.");
   }
   const auto instance = std::get<ObSLObject *>(obj);

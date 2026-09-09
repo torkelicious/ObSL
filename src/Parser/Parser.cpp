@@ -106,7 +106,7 @@ namespace ObSL {
                         binary_op = TokenType::GREATER_GREATER;
                         lexeme = ">>";
                     }
-                    Token op_token = {binary_op, lexeme, equals.line, equals.column, equals.start_pos, equals.end_pos};
+                    Token op_token = {.type = binary_op, .lexeme = lexeme, .line = equals.line, .column = equals.column, .start_pos = equals.start_pos, .end_pos = equals.end_pos};
                     auto left_var = std::make_unique<VariableExpr>(var_expr->token);
                     value = std::make_unique<BinaryExpr>(std::move(left_var), op_token, std::move(value));
                 }
@@ -557,7 +557,7 @@ namespace ObSL {
         }
 
         if (condition == nullptr) {
-            Token true_token{TokenType::TRUE_, "true", previous().line, previous().column, 0, 0};
+            Token true_token{.type = TokenType::TRUE_, .lexeme = "true", .line = previous().line, .column = previous().column, .start_pos = 0, .end_pos = 0};
             condition = std::make_unique<LiteralExpr>(true_token, Value(true));
         }
 
@@ -695,7 +695,7 @@ namespace ObSL {
                 default_val = parse_expression();
             }
             consume(TokenType::SEMICOLON, "Expect ';' after field declaration.");
-            fields.push_back(StructField{std::string(field_name.lexeme), std::move(default_val)});
+            fields.push_back(StructField{.name = std::string(field_name.lexeme), .default_value = std::move(default_val)});
         }
         consume(TokenType::RIGHT_BRACE, "Expect '}' after struct body.");
         return std::make_unique<StructStmt>(name, std::move(fields));
