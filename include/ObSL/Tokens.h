@@ -73,7 +73,7 @@ enum class TokenType : uint8_t {
   SWITCH,
   STRUCT,
   BREAK,
-  THIS_,
+  KW_THIS_, // windows stupid macros man
   TRUE_,
   TRY,
   USING,
