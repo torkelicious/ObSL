@@ -73,7 +73,7 @@ enum class TokenType : uint8_t {
   SWITCH,
   STRUCT,
   BREAK,
-  THIS,
+  THIS_,
   TRUE_,
   TRY,
   USING,
