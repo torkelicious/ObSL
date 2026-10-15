@@ -195,9 +195,10 @@ std::unique_ptr<Stmt> ASTDeserializer::deserialize_stmt() {
   switch (stype) {
   case StmtType::Using: {
     const std::string path(read_string_view());
+    const std::string alias(read_string_view());
     Token dummy{};
     dummy.type = TokenType::USING;
-    return std::make_unique<UsingStmt>(dummy, std::move(path));
+    return std::make_unique<UsingStmt>(dummy, path, alias);
   }
   case StmtType::Expression: {
     auto expr = deserialize_expr();

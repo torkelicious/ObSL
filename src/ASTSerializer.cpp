@@ -190,6 +190,7 @@ void ASTSerializer::serialize_stmt(const Stmt *stmt) {
   case StmtType::Using: {
     const auto *node = static_cast<const UsingStmt *>(stmt);
     write_string_index(node->path);
+    write_string_index(node->alias);
     break;
   }
   case StmtType::Expression: {

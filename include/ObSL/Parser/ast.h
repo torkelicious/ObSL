@@ -487,16 +487,18 @@ struct TypeCheckExpr : Expr {
 struct UsingStmt : Stmt {
   Token keyword;
   std::string path;
+  std::string alias;
 
-  UsingStmt(Token keyword, std::string path)
-      : keyword(std::move(keyword)), path(std::move(path)) {}
+  UsingStmt(Token keyword, std::string path, std::string alias = {})
+      : keyword(std::move(keyword)), path(std::move(path)),
+        alias(std::move(alias)) {}
 
   [[nodiscard]] StmtType type() const noexcept override {
     return StmtType::Using;
   }
 
   [[nodiscard]] std::string to_string() const override {
-    return std::format("[UsingStmt: {}]\n", path);
+    return std::format("[UsingStmt: {} : {}]\n", path, alias);
   }
 };
 
