@@ -282,11 +282,18 @@ ObSL supports multi-threaded execution:
 
 **Location**: `include/ObSL/Interpreter.h`, `src/Interpreter/Interpreter.cpp`, `include/ObSL/ModulePath.h`
 
-Modules are imported using the `using` statement:
+Modules are imported using the `using` statement, which optionally accepts an alias:
 
 ```obsl
 using "path/to/module.obsl";
+using "path/to/module.obsl" as moduleName;
 ```
+
+When no alias is specified, the module name is derived from the filename without its extension. When `as` is specified, the alias replaces that default name in the importing environment.
+
+The alias affects only the name used to reference the module. Module resolution and caching continue to use the canonical path, so importing the same file under multiple aliases does not create separate module instances.
+
+Module variables are exposed through an `ObSLObject` bound in the importing environment. They are accessed using ordinary object field access, such as `moduleName.someFunction()`.
 
 ### Path Resolution
 

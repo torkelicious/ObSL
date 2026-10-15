@@ -527,18 +527,39 @@ obj.printValue = printValue;
 
 # Modules
 
+Modules are imported using the `using` statement. Each import creates a module object containing the module's exported variables, which can be accessed through that object.
+
+### Basic Import
+
 ```obsl
-using "assets/scripts/module.obsl";
+using "assets/scripts/math.obsl";
+
+var result = math.add(5, 10);
 ```
 
-Module paths are resolved relative to the **script root** (defaults to the current working directory).
+By default, the module name is derived from the filename without its extension. In this example, `math.obsl` becomes `math`.
 
-Features:
+### Import Aliases
 
-- **Caching**: Modules are loaded once and cached   subsequent `using` calls return the same module object.
-- **Circular detection**: Circular imports are detected and reported as errors.
-- **Recursive imports**: Recursive `using` calls are supported without deadlocking.
-- **Custom loading** (embedding API): Host applications can provide a custom `ModuleLoader` to load modules from arbitrary sources (e.g. virtual filesystems or archives).
+Use `as` to specify a custom name for an imported module:
+
+```obsl
+using "assets/scripts/math.obsl" as Math;
+
+var result = Math.add(5, 10);
+```
+
+The alias replaces the default filename-based name for that import. Here, the module is available as `Math`, not `math`.
+
+Aliases are useful when multiple modules have the same filename or when a different name makes the code easier to understand.
+
+### Module Behavior
+
+- **Path resolution:** Module paths are resolved relative to the script root, which defaults to the current working directory.
+- **Caching:** Modules are cached by their canonical file path. Importing the same module under different aliases reuses the same cached module object.
+- **Isolation:** Module variables are accessed through the module object rather than being imported individually into the importing scope.
+- **Circular imports:** Circular imports are detected and reported as errors.
+- **Custom loading:** Embedding applications can provide a custom `ModuleLoader` to load modules from virtual filesystems or archives.
 
 ---
 
