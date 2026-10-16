@@ -68,7 +68,7 @@ void Interpreter::interpret(
         execute(stmt.get());
     }
   } catch (const RuntimeError &error) {
-    std::cerr << error.what() << "\n";
+    m_stderr.get() << error.what() << "\n";
   }
 }
 

@@ -15,12 +15,13 @@ namespace ObSL {
 int ScriptEntry::exec(const int argc, char *argv[]) {
   std::setvbuf(stdin, nullptr, _IONBF, 0);
   std::setvbuf(stdout, nullptr, _IONBF, 0);
+  std::setvbuf(stderr, nullptr, _IONBF, 0);
 
   bool lint_mode = false;
   std::string file_path;
 
   for (int i = 1; i < argc; ++i) {
-    if (std::string arg = argv[i]; arg == "--lint") {
+    if (const std::string arg = argv[i]; arg == "--lint") {
       lint_mode = true;
     } else if (file_path.empty()) {
       file_path = arg;
@@ -79,10 +80,6 @@ void ScriptEntry::runREPL() {
 }
 
 void ScriptEntry::run(const std::string &source, const bool is_repl) {
-  // ANSI color codes
-  constexpr std::string_view RED = "\033[31m";
-  constexpr std::string_view RESET = "\033[0m";
-
   try {
     if (is_repl) {
       m_repl_sources.push_back(source);
@@ -99,18 +96,10 @@ void ScriptEntry::run(const std::string &source, const bool is_repl) {
       m_interpreter.interpret(statements);
     }
   } catch (const std::exception &e) {
-    if (is_repl) {
-      std::cout << RED << "Error: " << e.what() << RESET << "\n";
-    } else {
-      std::cerr << "Error: " << e.what() << "\n";
-    }
+    m_interpreter.Get_Stderr() << "Error: " << e.what() << "\n";
   } catch (...) {
-    if (is_repl) {
-      std::cout << RED << "ObSL Error: An unknown exception occurred." << RESET
-                << "\n";
-    } else {
-      std::cerr << "ObSL Error: An unknown exception occurred.\n";
-    }
+    m_interpreter.Get_Stderr()
+        << "ObSL Error: An unknown exception occurred.\n";
   }
 }
 

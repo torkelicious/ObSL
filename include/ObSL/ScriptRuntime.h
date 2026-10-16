@@ -1,5 +1,6 @@
 #pragma once
 #include <algorithm>
+#include <istream>
 #include <memory>
 #include <thread>
 #include <vector>
@@ -27,6 +28,8 @@ public:
   [[nodiscard]] size_t worker_count() const { return m_Workers.size(); }
 
   void set_stdout(std::ostream &out) const;
+  void set_stderr(std::ostream &err) const;
+  void set_stdin(std::istream &in) const;
 
   void set_script_root(const std::string &path) const;
 

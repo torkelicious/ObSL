@@ -1,5 +1,6 @@
 #include <ObSL/ScriptRuntime.h>
 #include <iostream>
+#include <istream>
 
 namespace ObSL {
 void ScriptRuntime::init(const std::string &script_root,
@@ -17,6 +18,18 @@ void ScriptRuntime::init(const std::string &script_root,
 void ScriptRuntime::set_stdout(std::ostream &out) const {
   for (const auto &worker : m_Workers) {
     worker->GetInterpreter().Set_Stdout(out);
+  }
+}
+
+void ScriptRuntime::set_stderr(std::ostream &err) const {
+  for (const auto &worker : m_Workers) {
+    worker->GetInterpreter().Set_Stderr(err);
+  }
+}
+
+void ScriptRuntime::set_stdin(std::istream &in) const {
+  for (const auto &worker : m_Workers){
+    worker->GetInterpreter().Set_Stdin(in);
   }
 }
 

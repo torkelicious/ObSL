@@ -8,6 +8,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <ostream>
 #include <shared_mutex>
 #include <span>
 #include <unordered_map>
@@ -41,8 +42,11 @@ public:
   explicit Interpreter(const std::string &scriptrootpath =
                            std::filesystem::current_path().generic_string(),
                        std::ostream &out = std::cout,
+                       std::ostream &err = std::cerr,
                        std::istream &in = std::cin)
-      : m_script_root(scriptrootpath), m_stdout(out), m_stdin(in) {
+
+      : m_script_root(scriptrootpath), m_stdout(out), m_stderr(err),
+        m_stdin(in) {
     globals = std::make_shared<Environment>();
     register_environment(globals);
     environment = globals;
@@ -105,10 +109,12 @@ public:
   template <typename F> void define_native(std::string name, F &&body);
 
   void Set_Stdout(std::ostream &out) { m_stdout = std::ref(out); }
+  void Set_Stderr(std::ostream &err) { m_stderr = std::ref(err); }
   void Set_Stdin(std::istream &in) { m_stdin = std::ref(in); }
 
-  std::istream &Get_Stdin() const { return m_stdin.get(); }
   std::ostream &Get_Stdout() const { return m_stdout.get(); }
+  std::ostream &Get_Stderr() const { return m_stderr.get(); }
+  std::istream &Get_Stdin() const { return m_stdin.get(); }
 
   void set_script_root(const std::string &path) { m_script_root = path; }
 
@@ -179,6 +185,7 @@ private:
   // before other members that might use them during construction (e.g.,
   // StdLib).
   std::reference_wrapper<std::ostream> m_stdout;
+  std::reference_wrapper<std::ostream> m_stderr;
   std::reference_wrapper<std::istream> m_stdin;
 
   std::shared_ptr<Environment> globals;
