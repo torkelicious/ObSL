@@ -1,3 +1,4 @@
+#include "ObSL/Parser/ast.h"
 #include <ObSL/Interpreter.h>
 #include <cmath>
 #include <filesystem>
@@ -523,16 +524,22 @@ void Interpreter::check_number_operands(const TokenType oprt, const Value &lhs,
 }
 
 bool Interpreter::is_equal(const Value &a, const Value &b) {
-  return std::visit(
-      [](auto &&arg1, auto &&arg2) {
+    return std::visit([](auto &&arg1, auto &&arg2) {
         using T1 = std::decay_t<decltype(arg1)>;
         using T2 = std::decay_t<decltype(arg2)>;
-        if constexpr (std::is_same_v<T1, T2>)
-          return arg1 == arg2;
-        else
-          return false;
-      },
-      a, b);
+        if constexpr (std::is_same_v<T1, T2>) {
+            if constexpr (std::is_same_v<T1, ObSLObject *>) {
+                if (arg1 == arg2) {
+                    return true;
+                }
+                return arg1 && arg2 && arg1->identity && arg2->identity && *arg1->identity == *arg2->identity;
+            } else {
+                return arg1 == arg2;
+            }
+        } else {
+            return false;
+        }
+    }, a, b);
 }
 
 ModuleLoader Interpreter::createDefaultModuleLoader() {

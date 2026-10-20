@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <format>
 #include <memory>
+#include <optional>
 #include <ranges>
 #include <string>
 #include <string_view>
@@ -27,6 +28,7 @@ void mark_value(const Value &val);
 
 struct ObSLObject : GCObject {
   std::unordered_map<std::string, Value> fields;
+  std::optional<uint64_t> identity; // optional host defined id that used for equality operation if present
 
   void mark() override {
     if (is_marked)
