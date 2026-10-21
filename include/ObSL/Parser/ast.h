@@ -28,6 +28,7 @@ namespace ObSL {
     struct ObSLObject : GCObject {
         std::unordered_map<std::string, Value> fields;
         std::optional<uint64_t> identity; // optional host defined id that used for equality operation if present
+        bool readonly = false;
 
         void mark() override {
             if (is_marked)

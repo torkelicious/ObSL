@@ -718,6 +718,17 @@ namespace ObSL {
             throw RuntimeError(Token{.type = TokenType::IDENTIFIER, .lexeme = expr->name, .line = 0, .column = 0, .start_pos = 0, .end_pos = 0}, "Only objects can have fields assigned.");
         }
         const auto instance = std::get<ObSLObject *>(obj);
+
+        if (instance->readonly) {
+            throw RuntimeError(Token{.type = TokenType::IDENTIFIER,
+                                     .lexeme = expr->name,
+                                     .line = 0,
+                                     .column = 0,
+                                     .start_pos = 0,
+                                     .end_pos = 0},
+                               "Cannot assign to this field, the object is read-only.");
+        }
+
         Value value = evaluate(expr->value.get());
         instance->fields[std::string(expr->name)] = value;
         return value;
