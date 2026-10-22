@@ -52,6 +52,10 @@ enum class TokenType : uint8_t {
   NUMBER,
   IDENTIFIER,
 
+  // Trivia (LexMode::Formatting)
+  COMMENT,
+  NEWLINE,
+
   // Keywords
   AND,
   CASE,

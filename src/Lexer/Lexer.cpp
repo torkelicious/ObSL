@@ -5,7 +5,7 @@
 #include <ObSL/Natives.h>
 
 namespace ObSL {
-    Lexer::Lexer(const std::string_view source) : source(source) {
+    Lexer::Lexer(const std::string_view source, const LexMode mode) : source(source), mode(mode) {
     }
 
     std::vector<Token> Lexer::tokenize() {
@@ -17,7 +17,7 @@ namespace ObSL {
         }
 
         while (!is_at_end()) {
-            skip_whitespace();
+            skip_whitespace(tokens);
             if (is_at_end())
                 break;
             if (const char c = peek(); std::isdigit(static_cast<unsigned char>(c))) {
@@ -51,20 +51,47 @@ namespace ObSL {
 
     bool Lexer::is_at_end() const { return current >= source.size(); }
 
-    // skips comments too
-    void Lexer::skip_whitespace() {
+    // skips whitespace & comments in LexMode::Runtime
+    // in LexMode::Formatting it emits them as COMMENT / NEWLINE tokens
+    void Lexer::skip_whitespace(std::vector<Token> &trivia) {
         while (!is_at_end()) {
             if (const char c = peek(); c == ' ' || c == '\t' || c == '\r' || c == '\v' || c == '\f') {
                 advance();
             } else if (c == '\n') {
+                const uint32_t newline_start = current;
+                const uint16_t newline_line = static_cast<uint16_t>(line);
+                const uint16_t newline_col = static_cast<uint16_t>(column);
                 advance();
                 ++line;
                 column = 1;
+                if (mode == LexMode::Formatting) {
+                    trivia.push_back(Token{
+                        .type = TokenType::NEWLINE,
+                        .lexeme = std::string_view(&source[newline_start], 1),
+                        .line = newline_line,
+                        .column = newline_col,
+                        .start_pos = newline_start,
+                        .end_pos = static_cast<uint32_t>(current)
+                    });
+                }
             } else if (c == '/' && peek_next() == '/') {
+                const uint32_t comment_start = current;
+                const uint16_t comment_line = static_cast<uint16_t>(line);
+                const uint16_t comment_col = static_cast<uint16_t>(column);
                 advance();
                 advance();
                 while (peek() != '\n' && !is_at_end()) {
                     advance();
+                }
+                if (mode == LexMode::Formatting) {
+                    trivia.push_back(Token{
+                        .type = TokenType::COMMENT,
+                        .lexeme = source.substr(comment_start, current - comment_start),
+                        .line = comment_line,
+                        .column = comment_col,
+                        .start_pos = comment_start,
+                        .end_pos = static_cast<uint32_t>(current)
+                    });
                 }
             } else if (static_cast<unsigned char>(c) == 0xC2 && static_cast<unsigned char>(peek_next()) == 0xA0) {
                 advance();
