@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(OBSL_BUILD_RUNTIME "Build the ObSL runtime executable" ON)
+option(OBSL_BUILD_FORMATTER "Build the ObSL formatter executable" ON)
 
 include(FetchContent)
 
@@ -48,4 +49,14 @@ if (OBSL_BUILD_RUNTIME)
             src/ObSLCoreMain.cpp
     )
     target_link_libraries(obsl_runtime PRIVATE obsl)
+endif ()
+
+
+if (OBSL_BUILD_FORMATTER)
+    add_executable(obsl_fmt
+            src/Formatter/FmtMain.cpp
+            src/Formatter/Formatter.cpp
+            src/Formatter/Skeleton.cpp
+    )
+    target_link_libraries(obsl_fmt PRIVATE obsl)
 endif ()

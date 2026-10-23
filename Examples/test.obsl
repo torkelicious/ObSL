@@ -1,3 +1,11 @@
+// ObSL Test script
+
+/* 
+this is 
+    a multi-line 
+            comment 
+*/
+
 var start_time = clock();
 var suites_passed = 0;
 
@@ -52,15 +60,11 @@ assert(switchResult == 2, "switch test failed");
 pass_suite("Control Flow (If/Switch)");
 
 var whileCount = 0;
-while (whileCount < 3) {
-    whileCount++;
-}
+while (whileCount < 3) { whileCount++; }
 assert(whileCount == 3, "While loop failed");
 
 var forSum = 0;
-for (var i = 1; i <= 4; i++) {
-    forSum += i;
-}
+for (var i = 1; i <= 4; i++) { forSum += i; }
 assert(forSum == 10, "For loop failed");
 pass_suite("Iterators (While/For)");
 
@@ -68,9 +72,7 @@ var arr = [10, 20, 30];
 assert(arr.len == 3, "Array length failed");
 
 var foreachSum = 0;
-foreach (var num in arr) {
-    foreachSum += num;
-}
+foreach (var num in arr) { foreachSum += num; }
 assert(foreachSum == 60, "Foreach loop failed");
 
 arr[0] = 15;
@@ -193,7 +195,7 @@ assert(value is string, "is string failed");
 value = null;
 assert(value is null, "is null failed");
 value = true;
-assert(value is bool,"is bool failed");
+assert(value is bool, "is bool failed");
 pass_suite("Type checking via 'is' operator");
 
 var parent_arr = [1, 2];
@@ -215,9 +217,6 @@ while (idx < 2000) {
 }
 pass_suite("GC Threshold & Cyclic Tracking");
 
-
-
-
 var elapsed = clock() - start_time;
-println "SUCCESS: " + to_string(suites_passed) + " suites passed in " + to_fixed(elapsed, 3) + " seconds.";
-
+println "SUCCESS: " + to_string(suites_passed) + " suites passed in " + to_fixed(elapsed, 3) +
+    " seconds.";
