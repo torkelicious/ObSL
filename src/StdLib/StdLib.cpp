@@ -14,8 +14,7 @@ namespace ObSL {
         });
 
         // this is lazy but... i dont care..
-        interpreter.define_native(
-            "throw", [](const std::string &message) -> std::monostate { throw std::runtime_error(message); });
+        interpreter.define_native("throw", [](const std::string &message) -> std::monostate { throw std::runtime_error(message); });
 
         // submodules
         // create temporary stack instances & call their register function,

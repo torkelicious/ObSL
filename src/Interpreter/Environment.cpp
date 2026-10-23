@@ -4,9 +4,7 @@
 #include <format>
 
 namespace ObSL {
-    void Environment::define(const std::string_view name, const Value &value) {
-        values[std::string(name)] = value;
-    }
+    void Environment::define(const std::string_view name, const Value &value) { values[std::string(name)] = value; }
 
     Value Environment::get(const Token &name) {
         if (const auto it = values.find(name.lexeme); it != values.end()) {
