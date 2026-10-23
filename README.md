@@ -1,7 +1,7 @@
 # The Obliberry Scripting Language
 
 ObSL is a small interpreted, thread safe, dynamically typed programming language designed for game logic inside
-the   
+the  
 [Obliberry Game
 Engine](https://github.com/torkelicious/obliberry), made to be easily extendable.
 
@@ -83,9 +83,9 @@ cmake --build .
 
 ### CMake Options
 
-| Option | Default | Description |
-|---|---|---|
-| `OBSL_BUILD_RUNTIME` | `ON` | Builds the `obsl_runtime` CLI executable. Set to `OFF` to build only the `obsl` static library   useful when embedding ObSL into another project (e.g. the Obliberry Game Engine) that doesn't need the standalone CLI/REPL. |
+| Option               | Default | Description                                                                                                                                                                                                                |
+| -------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OBSL_BUILD_RUNTIME` | `ON`    | Builds the `obsl_runtime` CLI executable. Set to `OFF` to build only the `obsl` static library useful when embedding ObSL into another project (e.g. the Obliberry Game Engine) that doesn't need the standalone CLI/REPL. |
 
 ```bash
 cmake .. -DOBSL_BUILD_RUNTIME=OFF
@@ -112,7 +112,7 @@ and emit a JSON report:
 
 ```obsl
 println "Hello, World!";
-````
+```
 
 Variables are dynamically typed:
 
@@ -310,7 +310,7 @@ array
 object
 ```
 
-> **Note**: These are the type names accepted by `is`, which are distinct from the strings returned by the reflection function `type_of()`   most notably, `is` uses `function`/`fn` where `type_of()` returns `"callable"`. See the [Standard Library Reference](docs/STANDARD_LIBRARY.md#type_ofvalue) for `type_of()`'s exact return values.
+> **Note**: These are the type names accepted by `is`, which are distinct from the strings returned by the reflection function `type_of()` most notably, `is` uses `function`/`fn` where `type_of()` returns `"callable"`. See the [Standard Library Reference](docs/STANDARD_LIBRARY.md#type_ofvalue) for `type_of()`'s exact return values.
 
 ### Expressions
 
@@ -769,10 +769,10 @@ ObSL's design and implementation were informed by:
 
 ## Third-Party Libraries
 
-| Library | License | Purpose | More |
-|---|---|---|---|
-| [nlohmann/json](https://github.com/nlohmann/json) v3.12.0 | MIT | JSON output for `--lint` mode | [docs/THIRD_PARTY_LICENSES.md](docs/THIRD_PARTY_LICENSES.md) |
+| Library                                                   | License | Purpose                       | More                                                         |
+| --------------------------------------------------------- | ------- | ----------------------------- | ------------------------------------------------------------ |
+| [nlohmann/json](https://github.com/nlohmann/json) v3.12.0 | MIT     | JSON output for `--lint` mode | [docs/THIRD_PARTY_LICENSES.md](docs/THIRD_PARTY_LICENSES.md) |
 
 # License
- 
+
 ObSL is licensed under the [MIT License](LICENSE). See third-party dependency licenses in [THIRD_PARTY_LICENSES.md](docs/THIRD_PARTY_LICENSES.md).
