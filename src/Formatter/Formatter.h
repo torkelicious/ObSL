@@ -5,7 +5,7 @@
 
 namespace ObSL {
 
-// formats source text and returns the result
-std::string format_source(std::string_view source);
+    // formats source text and returns the result
+    std::string format_source(std::string_view source);
 
 } // namespace ObSL
