@@ -1,3 +1,11 @@
+// ObSL Test script
+
+/* 
+this is 
+    a multi-line 
+            comment 
+*/
+
 var start_time = clock();
 var suites_passed = 0;
 
