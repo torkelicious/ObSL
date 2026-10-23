@@ -567,8 +567,9 @@ std::string format_source(const std::string_view source) {
       if (pending_nl > 0) {
         to_line_start(false, true);
       } else if (line_open) {
-        out += "  ";
-        col += 2;
+        const int gap = cur.token.lexeme.starts_with("/*") ? 1 : 2;
+        for (int g = 0; g < gap; ++g) out += ' ';
+        col += gap;
       }
       out += cur.token.lexeme;
       col += static_cast<int>(cur.token.lexeme.size());
@@ -724,10 +725,14 @@ std::string format_source(const std::string_view source) {
     } else if (t == TokenType::COLON) {
       ++case_depth;
       size_t body_start = i + 1;
+      bool label_comment = false;
       while (body_start < n &&
              (skel[body_start].token.type == TokenType::NEWLINE ||
-              skel[body_start].token.type == TokenType::COMMENT))
+              skel[body_start].token.type == TokenType::COMMENT)) {
+        if (skel[body_start].token.type == TokenType::COMMENT)
+          label_comment = true;
         ++body_start;
+      }
       size_t body_end = body_start;
       if (body_start < n && skel[body_start].token.type != TokenType::COMMENT &&
           skel[body_start].token.type != TokenType::EOF_) {
@@ -736,7 +741,7 @@ std::string format_source(const std::string_view source) {
                !skel[body_end].stmt_start)
           ++body_end; // the body is the single statement starting here
       }
-      if (body_end > body_start) {
+      if (!label_comment && body_end > body_start) {
         size_t last_i = body_end;
         while (last_i > body_start &&
                skel[last_i - 1].token.type == TokenType::NEWLINE)

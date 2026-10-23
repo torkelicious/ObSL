@@ -93,6 +93,41 @@ namespace ObSL {
                         .end_pos = static_cast<uint32_t>(current)
                     });
                 }
+            } else if (c == '/' && peek_next() == '*') {
+                const uint32_t comment_start = current;
+                const uint16_t comment_line = static_cast<uint16_t>(line);
+                const uint16_t comment_col = static_cast<uint16_t>(column);
+                advance(); // /
+                advance(); // *
+                while (!is_at_end() && !(peek() == '*' && peek_next() == '/')) {
+                    if (peek() == '\n') {
+                        advance();
+                        ++line;
+                        column = 1;
+                    } else {
+                        advance();
+                    }
+                }
+                if (is_at_end()) {
+                    throw RuntimeError(
+                        Token{
+                            .type = TokenType::UNKNOWN_, .lexeme = "", .line = comment_line,
+                            .column = comment_col, .start_pos = comment_start
+                        },
+                        "Unterminated block comment.");
+                }
+                advance(); // *
+                advance(); // /
+                if (mode == LexMode::Formatting) {
+                    trivia.push_back(Token{
+                        .type = TokenType::COMMENT,
+                        .lexeme = source.substr(comment_start, current - comment_start),
+                        .line = comment_line,
+                        .column = comment_col,
+                        .start_pos = comment_start,
+                        .end_pos = static_cast<uint32_t>(current)
+                    });
+                }
             } else if (static_cast<unsigned char>(c) == 0xC2 && static_cast<unsigned char>(peek_next()) == 0xA0) {
                 advance();
                 advance();
