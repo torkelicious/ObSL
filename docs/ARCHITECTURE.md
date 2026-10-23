@@ -40,7 +40,7 @@ The lexer converts source code into tokens. It handles:
 ```cpp
 struct Token {
     TokenType type;           // enum class
-    std::string_view lexeme;  // original text 
+    std::string_view lexeme;  // original text
     uint16_t line;            // source line
     uint16_t column;          // source column
     uint32_t start_pos;       // start position in source
@@ -253,7 +253,7 @@ ObSL::ScriptEntry entry;
 entry.exec(argc, argv);
 ```
 
-This is a separate, single-threaded path from the `ScriptRuntime`/`ScriptWorker` pool described below   `ScriptEntry`
+This is a separate, single-threaded path from the `ScriptRuntime`/`ScriptWorker` pool described below `ScriptEntry`
 does not go through `ScriptRuntime`. It's the entry point for running scripts standalone from the command line;
 `ScriptRuntime` is for embedding ObSL in a multi-threaded host application, such as the Obliberry Game Engine.
 
@@ -362,7 +362,7 @@ The project uses CMake with:
 
 - C++20 standard
 - Static library (`libobsl.a`)
-- Runtime executable (`obsl_runtime`)   built by default, disable with `-DOBSL_BUILD_RUNTIME=OFF` to produce only
+- Runtime executable (`obsl_runtime`) built by default, disable with `-DOBSL_BUILD_RUNTIME=OFF` to produce only
   `libobsl.a` for embedding
 - Dependency management (nlohmann/json)
 

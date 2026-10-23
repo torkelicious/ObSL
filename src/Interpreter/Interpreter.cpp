@@ -1,3 +1,4 @@
+#include "ObSL/Parser/ast.h"
 #include <ObSL/Interpreter.h>
 #include <cmath>
 #include <filesystem>
@@ -447,10 +448,18 @@ namespace ObSL {
         return std::visit([](auto &&arg1, auto &&arg2) {
             using T1 = std::decay_t<decltype(arg1)>;
             using T2 = std::decay_t<decltype(arg2)>;
-            if constexpr (std::is_same_v<T1, T2>)
-                return arg1 == arg2;
-            else
+            if constexpr (std::is_same_v<T1, T2>) {
+                if constexpr (std::is_same_v<T1, ObSLObject *>) {
+                    if (arg1 == arg2) {
+                        return true;
+                    }
+                    return arg1 && arg2 && arg1->identity && arg2->identity && *arg1->identity == *arg2->identity;
+                } else {
+                    return arg1 == arg2;
+                }
+            } else {
                 return false;
+            }
         }, a, b);
     }
 
@@ -709,6 +718,17 @@ namespace ObSL {
             throw RuntimeError(Token{.type = TokenType::IDENTIFIER, .lexeme = expr->name, .line = 0, .column = 0, .start_pos = 0, .end_pos = 0}, "Only objects can have fields assigned.");
         }
         const auto instance = std::get<ObSLObject *>(obj);
+
+        if (instance->readonly) {
+            throw RuntimeError(Token{.type = TokenType::IDENTIFIER,
+                                     .lexeme = expr->name,
+                                     .line = 0,
+                                     .column = 0,
+                                     .start_pos = 0,
+                                     .end_pos = 0},
+                               "Cannot assign to this field, the object is read-only.");
+        }
+
         Value value = evaluate(expr->value.get());
         instance->fields[std::string(expr->name)] = value;
         return value;
