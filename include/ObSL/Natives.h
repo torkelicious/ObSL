@@ -3,7 +3,9 @@
 #include <exception>
 #include <format>
 #include <functional>
+#include <limits>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string_view>
 #include <tuple>
@@ -94,17 +96,24 @@ namespace ObSL {
 
     class NativeFunction : public ObSLCallable {
         int m_arity;
+        std::optional<int> m_max_arity; // nullopt means variadic
         std::function<Value(Interpreter *, const std::vector<Value> &)> m_body;
         std::string m_name;
 
     public:
-        NativeFunction(const int arity, std::function<Value(Interpreter *, const std::vector<Value> &)> body, std::string name = "native") : m_arity(arity), m_body(std::move(body)), m_name(std::move(name)) {}
+        NativeFunction(const int arity, std::function<Value(Interpreter *, const std::vector<Value> &)> body, std::string name = "native")
+            : m_arity(arity), m_max_arity(arity), m_body(std::move(body)), m_name(std::move(name)) {}
 
-        [[nodiscard]] int arity() const override { return m_arity; }
+        NativeFunction(const int min_arity, const std::optional<int> max_arity, std::function<Value(Interpreter *, const std::vector<Value> &)> body, std::string name = "native")
+            : m_arity(min_arity), m_max_arity(max_arity), m_body(std::move(body)), m_name(std::move(name)) {}
+
+        [[nodiscard]] int arity() const override { return m_max_arity.value_or(std::numeric_limits<int>::max()); }
+
+        [[nodiscard]] int min_arity() const override { return m_arity; }
 
         Value call(Interpreter *interpreter, const std::vector<Value> &arguments, const Token &call_token) override {
-            if (arguments.size() != m_arity) {
-                throw RuntimeError(call_token, std::format("Native function expects {} arguments but got {}.", m_arity, arguments.size()));
+            if (arguments.size() < static_cast<size_t>(m_arity) || (m_max_arity.has_value() && arguments.size() > static_cast<size_t>(*m_max_arity))) {
+                throw RuntimeError(call_token, std::format("Native function expects between {} and {} arguments but got {}.", m_arity, m_max_arity.has_value() ? std::to_string(*m_max_arity) : "any", arguments.size()));
             }
             try {
                 return m_body(interpreter, arguments);
