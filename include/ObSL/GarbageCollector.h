@@ -53,6 +53,9 @@ namespace ObSL {
                 m_ExternalRoots.push_back(obj);
         }
 
-        void remove_root(GCObject *obj) { std::erase(m_ExternalRoots, obj); }
+        void remove_root(GCObject *obj) {
+            if (const auto it = std::find(m_ExternalRoots.begin(), m_ExternalRoots.end(), obj); it != m_ExternalRoots.end())
+                m_ExternalRoots.erase(it);
+        }
     };
 } // namespace ObSL
