@@ -86,6 +86,8 @@ cmake --build .
 | Option               | Default | Description                                                                                                                                                                                                                |
 | -------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `OBSL_BUILD_RUNTIME` | `ON`    | Builds the `obsl_runtime` CLI executable. Set to `OFF` to build only the `obsl` static library useful when embedding ObSL into another project (e.g. the Obliberry Game Engine) that doesn't need the standalone CLI/REPL. |
+| `OBSL_BUILD_FORMATTER` | `ON`    | Builds the `obsl_fmt` CLI executable. Set to `OFF` if you don't intend to use the formatter. |
+
 
 ```bash
 cmake .. -DOBSL_BUILD_RUNTIME=OFF
