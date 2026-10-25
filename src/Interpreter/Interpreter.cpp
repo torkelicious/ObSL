@@ -51,7 +51,9 @@ namespace ObSL {
                 });
             }
         }
-        return std::make_shared<Environment>(std::move(enclosing));
+        auto fallback = std::make_shared<Environment>(std::move(enclosing));
+        register_environment_unsafe(fallback);
+        return fallback;
     }
 
     // No mutex: each ScriptWorker owns its Interpreter exclusively.
@@ -565,6 +567,7 @@ namespace ObSL {
             execute_block_stmt(stmt->try_body.get());
         } catch (const RuntimeError &error) {
             const auto catch_env = std::make_shared<Environment>(environment);
+            register_environment_unsafe(catch_env);
             catch_env->define(stmt->exception_var, std::string(error.what()));
             execute_block(stmt->catch_body->statements, catch_env);
         }
@@ -586,6 +589,7 @@ namespace ObSL {
 
     void Interpreter::execute_block_stmt(const BlockStmt *stmt) {
         const auto block_env = std::make_shared<Environment>(environment);
+        register_environment_unsafe(block_env);
         EnvironmentGuard guard(environment, environment);
         execute_block(std::span(stmt->statements), block_env);
     }

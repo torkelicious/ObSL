@@ -122,6 +122,11 @@ namespace ObSL {
             }
             if (environment)
                 environment->mark();
+            // pooled envs suspended mid call are not reachable otherwise
+            for (auto &entry : m_EnvPool) {
+                if (entry.in_use && entry.env)
+                    entry.env->mark();
+            }
             for (auto &val : gc_protect_stack) {
                 mark_value(val);
             }
