@@ -248,6 +248,7 @@ namespace ObSL {
         Value index_val = evaluate(expr->index.get());
         scope.protect(index_val);
         Value value = evaluate(expr->value.get());
+        scope.protect(value);
 
         if (std::holds_alternative<ObSLArray *>(callee)) {
             auto array = std::get<ObSLArray *>(callee);
@@ -276,6 +277,7 @@ namespace ObSL {
         const Value lhs = evaluate(expr->left.get());
         scope.protect(lhs);
         const Value rhs = evaluate(expr->right.get());
+        scope.protect(rhs);
 
         switch (expr->oprt_type) {
             case TokenType::GREATER:
@@ -385,7 +387,9 @@ namespace ObSL {
     }
 
     Value Interpreter::evaluate_logical(const LogicalExpr *expr) {
-        Value left = evaluate(expr->left.get());
+        const GCProtectScope scope(this);
+        const Value left = evaluate(expr->left.get());
+        scope.protect(left);
         if (expr->oprt_type == TokenType::OR) {
             if (is_truthy(left))
                 return left;
@@ -594,7 +598,9 @@ namespace ObSL {
     }
 
     void Interpreter::execute_switch_stmt(const SwitchStmt *stmt) {
+        const GCProtectScope scope(this);
         const Value condition_val = evaluate(stmt->condition.get());
+        scope.protect(condition_val);
         try {
             const CaseBranch *default_branch = nullptr;
             for (const auto &case_branch : stmt->cases) {
@@ -629,7 +635,9 @@ namespace ObSL {
     }
 
     void Interpreter::execute_foreach_stmt(const ForeachStmt *stmt) {
+        const GCProtectScope scope(this);
         if (const Value iterable_val = evaluate(stmt->iterable.get()); std::holds_alternative<ObSLArray *>(iterable_val)) {
+            scope.protect(iterable_val); // array could be a temporary
             for (const auto array = std::get<ObSLArray *>(iterable_val); const auto &item : array->elements) {
                 auto loop_env = std::make_shared<Environment>(environment);
                 loop_env->define(stmt->loop_var, item);
@@ -656,7 +664,9 @@ namespace ObSL {
     }
 
     Value Interpreter::evaluate_get(const GetExpr *expr) {
+        const GCProtectScope scope(this);
         const Value obj = evaluate(expr->obj.get());
+        scope.protect(obj);
 
         if (std::holds_alternative<ObSLArray *>(obj)) {
             const auto array = std::get<ObSLArray *>(obj);
@@ -667,7 +677,9 @@ namespace ObSL {
                     array->elements.push_back(args[0]);
                     return args[0];
                 };
-                return gc.allocate<NativeFunction>(1, std::move(push_fn), "push");
+                auto *push_native = gc.allocate<NativeFunction>(1, std::move(push_fn), "push");
+                push_native->track_capture(array);
+                return push_native;
             }
             if (expr->name == "pop") {
                 auto pop_fn = [array](Interpreter *, const std::vector<Value> &) -> Value {
@@ -677,14 +689,18 @@ namespace ObSL {
                     array->elements.pop_back();
                     return val;
                 };
-                return gc.allocate<NativeFunction>(0, std::move(pop_fn), "pop");
+                auto *pop_native = gc.allocate<NativeFunction>(0, std::move(pop_fn), "pop");
+                pop_native->track_capture(array);
+                return pop_native;
             }
             if (expr->name == "clear") {
                 auto clear_fn = [array](Interpreter *, const std::vector<Value> &) -> Value {
                     array->elements.clear();
                     return std::monostate{};
                 };
-                return gc.allocate<NativeFunction>(0, std::move(clear_fn), "clear");
+                auto *clear_native = gc.allocate<NativeFunction>(0, std::move(clear_fn), "clear");
+                clear_native->track_capture(array);
+                return clear_native;
             }
 
             throw RuntimeError(Token{.type = TokenType::IDENTIFIER, .lexeme = expr->name, .line = 0, .column = 0, .start_pos = 0, .end_pos = 0}, std::format("Undefined property '{}' on Array.", expr->name));
@@ -774,6 +790,9 @@ namespace ObSL {
 
     Value ObSLStruct::call(Interpreter *interpreter, const std::vector<Value> &arguments, const Token &call_token) {
         auto *instance = interpreter->gc.allocate<ObSLObject>();
+        // protect against a gc triggered by default value evaluation
+        GCProtectScope scope(interpreter);
+        scope.protect(instance);
 
         for (size_t i = 0; i < declaration->fields.size(); ++i) {
             const auto &[name, default_value] = declaration->fields[i];
@@ -782,7 +801,9 @@ namespace ObSL {
             if (i < arguments.size()) {
                 instance->fields[field_name] = arguments[i];
             } else if (default_value) {
-                instance->fields[field_name] = interpreter->evaluate(default_value.get());
+                const Value default_val = interpreter->evaluate(default_value.get());
+                scope.protect(default_val);
+                instance->fields[field_name] = default_val;
             } else {
                 instance->fields[field_name] = std::monostate{};
             }

@@ -14,10 +14,13 @@ namespace ObSL {
     }
 
     void GarbageCollector::collect() {
-        // mark external roots first  (shared)
-        for (auto *root : m_ExternalRoots) {
-            if (root)
-                root->mark();
+        // mark external roots first (shared)
+        {
+            std::lock_guard root_lock(m_RootMutex);
+            for (auto *root : m_ExternalRoots) {
+                if (root)
+                    root->mark();
+            }
         }
 
         interpreter->mark_roots();
@@ -34,6 +37,7 @@ namespace ObSL {
                 obj = &(*obj)->next;
             }
         }
-        gc_threshold = allocated_objs * 2;
+        // keep a floor so an empty heap does not collect every allocation
+        gc_threshold = std::max<size_t>(allocated_objs * 2, 256);
     }
 } // namespace ObSL

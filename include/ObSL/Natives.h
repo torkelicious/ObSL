@@ -99,6 +99,7 @@ namespace ObSL {
         std::optional<int> m_max_arity; // nullopt means variadic
         std::function<Value(Interpreter *, const std::vector<Value> &)> m_body;
         std::string m_name;
+        std::vector<GCObject *> m_GCCaptures;
 
     public:
         NativeFunction(const int arity, std::function<Value(Interpreter *, const std::vector<Value> &)> body, std::string name = "native")
@@ -126,7 +127,21 @@ namespace ObSL {
 
         [[nodiscard]] std::string to_string() const override { return std::format("<native fn {}>", m_name); }
 
-        void mark() override { is_marked = true; }
+        // retains a GC object the body captured
+        void track_capture(GCObject *obj) {
+            if (obj)
+                m_GCCaptures.push_back(obj);
+        }
+
+        void mark() override {
+            if (is_marked)
+                return;
+            is_marked = true;
+            for (GCObject *obj : m_GCCaptures) {
+                if (obj)
+                    obj->mark();
+            }
+        }
     };
 
     template <typename TargetType> static void validate_native_arg(const Value &arg, const size_t index) {
