@@ -123,7 +123,8 @@ namespace ObSL {
                 if (equals.type != TokenType::ASSIGN) {
                     throw RuntimeError(equals, "Compound assignment on object properties is not supported.");
                 }
-                return std::make_unique<SetExpr>(std::move(get_expr->obj), get_expr->name, std::move(value));
+                const Token set_name = get_expr->name_token;
+                return std::make_unique<SetExpr>(std::move(get_expr->obj), set_name, std::move(value));
             }
             throw RuntimeError(equals, "Invalid assignment target.");
         }
@@ -211,7 +212,7 @@ namespace ObSL {
             } else {
                 throw RuntimeError(peek(), "Expect type name after 'is'.");
             }
-            expr = std::make_unique<TypeCheckExpr>(std::move(expr), std::string(type_name.lexeme));
+            expr = std::make_unique<TypeCheckExpr>(std::move(expr), type_name);
         }
         return expr;
     }

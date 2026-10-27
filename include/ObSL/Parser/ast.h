@@ -185,14 +185,14 @@ namespace ObSL {
 
     struct LogicalExpr : Expr {
         std::unique_ptr<Expr> left;
-        TokenType oprt_type;
+        Token operator_token; // full operator token (lexeme + position), for error reporting
         std::unique_ptr<Expr> right;
 
-        LogicalExpr(std::unique_ptr<Expr> left, const Token &oprt, std::unique_ptr<Expr> right) : left(std::move(left)), oprt_type(oprt.type), right(std::move(right)) {}
+        LogicalExpr(std::unique_ptr<Expr> left, const Token &oprt, std::unique_ptr<Expr> right) : left(std::move(left)), operator_token(oprt), right(std::move(right)) {}
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Logical; }
 
-        [[nodiscard]] std::string to_string() const override { return std::format("({} {} {})", static_cast<int>(oprt_type), left->to_string(), right->to_string()); }
+        [[nodiscard]] std::string to_string() const override { return std::format("({} {} {})", operator_token.lexeme, left->to_string(), right->to_string()); }
     };
 
     struct GroupingExpr : Expr {
@@ -246,18 +246,18 @@ namespace ObSL {
     struct UpdateExpr : Expr {
         std::string name;
         Token token; // position of the identifier, for error reporting
-        TokenType oprt_type;
+        Token operator_token; // the ++/-- operator, for error reporting
         uint8_t is_prefix : 1; // bit field for boolean
 
-        UpdateExpr(const std::string_view name, const Token &oprt, const bool prefix) : name(std::string(name)), token(Token{TokenType::IDENTIFIER, this->name, 0, 0, 0, 0}), oprt_type(oprt.type), is_prefix(prefix) {}
+        UpdateExpr(const std::string_view name, const Token &oprt, const bool prefix) : name(std::string(name)), token(Token{TokenType::IDENTIFIER, this->name, 0, 0, 0, 0}), operator_token(oprt), is_prefix(prefix) {}
 
-        UpdateExpr(const Token &name, const Token &oprt, const bool prefix) : name(std::string(name.lexeme)), token(name), oprt_type(oprt.type), is_prefix(prefix) {}
+        UpdateExpr(const Token &name, const Token &oprt, const bool prefix) : name(std::string(name.lexeme)), token(name), operator_token(oprt), is_prefix(prefix) {}
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Update; }
 
         [[nodiscard]] std::string to_string() const override {
             std::string oprt_str;
-            switch (oprt_type) {
+            switch (operator_token.type) {
                 case TokenType::PLUS_PLUS:
                     oprt_str = "++";
                     break;
@@ -321,8 +321,9 @@ namespace ObSL {
     struct GetExpr : Expr {
         std::unique_ptr<Expr> obj;
         std::string name;
+        Token name_token; // position of the property name, for error reporting
 
-        GetExpr(std::unique_ptr<Expr> obj, const Token &name) : obj(std::move(obj)), name(std::string(name.lexeme)) {}
+        GetExpr(std::unique_ptr<Expr> obj, const Token &name) : obj(std::move(obj)), name(std::string(name.lexeme)), name_token(name) {}
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Get; }
 
@@ -332,11 +333,12 @@ namespace ObSL {
     struct SetExpr : Expr {
         std::unique_ptr<Expr> obj;
         std::string name;
+        Token name_token; // position of the property name, for error reporting
         std::unique_ptr<Expr> value;
 
-        SetExpr(std::unique_ptr<Expr> obj, const std::string_view name, std::unique_ptr<Expr> value) : obj(std::move(obj)), name(std::string(name)), value(std::move(value)) {}
+        SetExpr(std::unique_ptr<Expr> obj, const std::string_view name, std::unique_ptr<Expr> value) : obj(std::move(obj)), name(std::string(name)), name_token(Token{TokenType::IDENTIFIER, this->name, 0, 0, 0, 0}), value(std::move(value)) {}
 
-        SetExpr(std::unique_ptr<Expr> obj, const Token &name, std::unique_ptr<Expr> value) : obj(std::move(obj)), name(std::string(name.lexeme)), value(std::move(value)) {}
+        SetExpr(std::unique_ptr<Expr> obj, const Token &name, std::unique_ptr<Expr> value) : obj(std::move(obj)), name(std::string(name.lexeme)), name_token(name), value(std::move(value)) {}
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Set; }
 
@@ -346,8 +348,11 @@ namespace ObSL {
     struct TypeCheckExpr : Expr {
         std::unique_ptr<Expr> left;
         std::string type_name;
+        Token name_token; // position of the type name, for error reporting
 
         TypeCheckExpr(std::unique_ptr<Expr> left, std::string type_name) : left(std::move(left)), type_name(std::move(type_name)) {}
+
+        TypeCheckExpr(std::unique_ptr<Expr> left, const Token &type_name) : left(std::move(left)), type_name(type_name.lexeme), name_token(type_name) {}
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::TypeCheck; }
 
@@ -481,10 +486,11 @@ namespace ObSL {
 
     struct ForeachStmt : Stmt {
         std::string loop_var;
+        Token loop_var_token; // position of the loop variable, for error reporting
         std::unique_ptr<Expr> iterable;
         std::unique_ptr<Stmt> body;
 
-        ForeachStmt(const Token &loop_var, std::unique_ptr<Expr> iterable, std::unique_ptr<Stmt> body) : loop_var(std::string(loop_var.lexeme)), iterable(std::move(iterable)), body(std::move(body)) {}
+        ForeachStmt(const Token &loop_var, std::unique_ptr<Expr> iterable, std::unique_ptr<Stmt> body) : loop_var(std::string(loop_var.lexeme)), loop_var_token(loop_var), iterable(std::move(iterable)), body(std::move(body)) {}
 
         [[nodiscard]] StmtType type() const noexcept override { return StmtType::Foreach; }
 

@@ -6,8 +6,9 @@
 #include <vector>
 
 namespace ObSL {
-    // Bump when the AST wire format changes (v1: no marker; v2: Binary/Unary operator tokens).
-    inline constexpr uint8_t kAstFormatVersion = 2;
+    // Bump when the AST wire format changes (v1: no marker; v2: Binary/Unary operator tokens;
+    // v3: tokens for Logical/Update/Get/Set/TypeCheck/Variable/Assignment/Foreach).
+    inline constexpr uint8_t kAstFormatVersion = 3;
 
     struct SerializedModule {
         std::vector<std::string> string_pool;

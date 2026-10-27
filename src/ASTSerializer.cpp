@@ -95,7 +95,7 @@ namespace ObSL {
             case ExprType::Logical: {
                 const auto *node = static_cast<const LogicalExpr *>(expr);
                 serialize_expr(node->left.get());
-                write(node->oprt_type);
+                serialize_token(*this, node->operator_token);
                 serialize_expr(node->right.get());
                 break;
             }
@@ -112,19 +112,19 @@ namespace ObSL {
             }
             case ExprType::Variable: {
                 const auto *node = static_cast<const VariableExpr *>(expr);
-                write_string_index(node->name);
+                serialize_token(*this, node->token);
                 break;
             }
             case ExprType::Assignment: {
                 const auto *node = static_cast<const AssignmentExpr *>(expr);
-                write_string_index(node->name);
+                serialize_token(*this, node->token);
                 serialize_expr(node->value.get());
                 break;
             }
             case ExprType::Update: {
                 const auto *node = static_cast<const UpdateExpr *>(expr);
-                write_string_index(node->name);
-                write(node->oprt_type);
+                serialize_token(*this, node->token);      // identifier token
+                serialize_token(*this, node->operator_token);
                 write(static_cast<uint8_t>(node->is_prefix)); // bitfield cast to byte
                 break;
             }
@@ -154,20 +154,20 @@ namespace ObSL {
             case ExprType::Get: {
                 const auto *node = static_cast<const GetExpr *>(expr);
                 serialize_expr(node->obj.get());
-                write_string_index(node->name);
+                serialize_token(*this, node->name_token);
                 break;
             }
             case ExprType::Set: {
                 const auto *node = static_cast<const SetExpr *>(expr);
                 serialize_expr(node->obj.get());
-                write_string_index(node->name);
+                serialize_token(*this, node->name_token);
                 serialize_expr(node->value.get());
                 break;
             }
             case ExprType::TypeCheck: {
                 const auto *node = static_cast<const TypeCheckExpr *>(expr);
                 serialize_expr(node->left.get());
-                write_string_index(node->type_name);
+                serialize_token(*this, node->name_token);
                 break;
             }
         }
@@ -248,7 +248,7 @@ namespace ObSL {
             }
             case StmtType::Foreach: {
                 const auto *node = static_cast<const ForeachStmt *>(stmt);
-                write_string_index(node->loop_var);
+                serialize_token(*this, node->loop_var_token);
                 serialize_expr(node->iterable.get());
                 serialize_stmt(node->body.get());
                 break;

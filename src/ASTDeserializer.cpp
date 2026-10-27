@@ -93,11 +93,9 @@ namespace ObSL {
             }
             case ExprType::Logical: {
                 auto left = deserialize_expr();
-                const TokenType oprt = read<TokenType>();
+                const Token op_token = deserialize_token(*this);
                 auto right = deserialize_expr();
-                Token dummy_oprt{};
-                dummy_oprt.type = oprt;
-                return std::make_unique<LogicalExpr>(std::move(left), dummy_oprt, std::move(right));
+                return std::make_unique<LogicalExpr>(std::move(left), op_token, std::move(right));
             }
             case ExprType::Grouping: {
                 auto expr = deserialize_expr();
@@ -109,21 +107,19 @@ namespace ObSL {
                 return std::make_unique<UnaryExpr>(op_token, std::move(right));
             }
             case ExprType::Variable: {
-                const std::string_view name = read_string_view();
+                const Token name = deserialize_token(*this);
                 return std::make_unique<VariableExpr>(name);
             }
             case ExprType::Assignment: {
-                const std::string_view name = read_string_view();
+                const Token name = deserialize_token(*this);
                 auto value = deserialize_expr();
                 return std::make_unique<AssignmentExpr>(name, std::move(value));
             }
             case ExprType::Update: {
-                const std::string_view name = read_string_view();
-                const TokenType oprt = read<TokenType>();
+                const Token name = deserialize_token(*this);
+                const Token op_token = deserialize_token(*this);
                 const bool is_prefix = read<uint8_t>() != 0;
-                Token dummy_oprt{};
-                dummy_oprt.type = oprt;
-                return std::make_unique<UpdateExpr>(name, dummy_oprt, is_prefix);
+                return std::make_unique<UpdateExpr>(name, op_token, is_prefix);
             }
             case ExprType::Array: {
                 const uint32_t count = read<uint32_t>();
@@ -149,21 +145,19 @@ namespace ObSL {
             }
             case ExprType::Get: {
                 auto obj = deserialize_expr();
-                const std::string_view name = read_string_view();
-                Token dummy_name{};
-                dummy_name.lexeme = name;
-                return std::make_unique<GetExpr>(std::move(obj), dummy_name);
+                const Token name = deserialize_token(*this);
+                return std::make_unique<GetExpr>(std::move(obj), name);
             }
             case ExprType::Set: {
                 auto obj = deserialize_expr();
-                const std::string_view name = read_string_view();
+                const Token name = deserialize_token(*this);
                 auto value = deserialize_expr();
                 return std::make_unique<SetExpr>(std::move(obj), name, std::move(value));
             }
             case ExprType::TypeCheck: {
                 auto left = deserialize_expr();
-                const std::string type_name(read_string_view());
-                return std::make_unique<TypeCheckExpr>(std::move(left), std::move(type_name));
+                const Token type_name = deserialize_token(*this);
+                return std::make_unique<TypeCheckExpr>(std::move(left), type_name);
             }
         }
 
@@ -252,12 +246,10 @@ namespace ObSL {
                 return std::make_unique<WhileStmt>(std::move(condition), std::move(body));
             }
             case StmtType::Foreach: {
-                const std::string_view loop_var = read_string_view();
+                const Token loop_var = deserialize_token(*this);
                 auto iterable = deserialize_expr();
                 auto body = deserialize_stmt();
-                Token dummy_var{};
-                dummy_var.lexeme = loop_var;
-                return std::make_unique<ForeachStmt>(dummy_var, std::move(iterable), std::move(body));
+                return std::make_unique<ForeachStmt>(loop_var, std::move(iterable), std::move(body));
             }
             case StmtType::Return: {
                 auto value = deserialize_expr();

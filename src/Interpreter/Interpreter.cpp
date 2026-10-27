@@ -394,7 +394,7 @@ namespace ObSL {
         const Value &current_value = environment->get_ref(expr->token);
         check_number_operand(expr->token, current_value);
         double num = std::get<double>(current_value);
-        double new_num = expr->oprt_type == TokenType::PLUS_PLUS ? num + 1.0 : num - 1.0;
+        double new_num = expr->operator_token.type == TokenType::PLUS_PLUS ? num + 1.0 : num - 1.0;
         environment->assign(expr->token, Value(new_num));
         return expr->is_prefix ? Value(new_num) : Value(num);
     }
@@ -409,7 +409,7 @@ namespace ObSL {
         const GCProtectScope scope(this);
         const Value left = evaluate(expr->left.get());
         scope.protect(left);
-        if (expr->oprt_type == TokenType::OR) {
+        if (expr->operator_token.type == TokenType::OR) {
             if (is_truthy(left))
                 return left;
         } else {
@@ -444,7 +444,7 @@ namespace ObSL {
             return std::holds_alternative<ObSLObject *>(value);
         }
 
-        throw RuntimeError(Token{.type = TokenType::IS, .lexeme = "is", .line = 0, .column = 0, .start_pos = 0, .end_pos = 0}, std::format("Unknown type name '{}'.", expr->type_name));
+        throw RuntimeError(expr->name_token, std::format("Unknown type name '{}'.", expr->type_name));
     }
 
     bool Interpreter::is_truthy(const Value &value) {
@@ -671,7 +671,7 @@ namespace ObSL {
                 }
             }
         } else {
-            throw RuntimeError(Token{.type = TokenType::UNKNOWN_, .lexeme = stmt->loop_var, .line = 0, .column = 0, .start_pos = 0, .end_pos = 0}, "Object is not iterable. Expected an Array.");
+            throw RuntimeError(stmt->loop_var_token, "Object is not iterable. Expected an Array.");
         }
     }
 
@@ -724,7 +724,7 @@ namespace ObSL {
                 return clear_native;
             }
 
-            throw RuntimeError(Token{.type = TokenType::IDENTIFIER, .lexeme = expr->name, .line = 0, .column = 0, .start_pos = 0, .end_pos = 0}, std::format("Undefined property '{}' on Array.", expr->name));
+            throw RuntimeError(expr->name_token, std::format("Undefined property '{}' on Array.", expr->name));
         }
 
         if (std::holds_alternative<ObSLObject *>(obj)) {
@@ -741,9 +741,9 @@ namespace ObSL {
                 }
                 return val;
             }
-            throw RuntimeError(Token{.type = TokenType::IDENTIFIER, .lexeme = expr->name, .line = 0, .column = 0, .start_pos = 0, .end_pos = 0}, std::format("Undefined property '{}' on object.", expr->name));
+            throw RuntimeError(expr->name_token, std::format("Undefined property '{}' on object.", expr->name));
         }
-        throw RuntimeError(Token{.type = TokenType::IDENTIFIER, .lexeme = expr->name, .line = 0, .column = 0, .start_pos = 0, .end_pos = 0}, " does not contain property.");
+        throw RuntimeError(expr->name_token, " does not contain property.");
     }
 
     Value Interpreter::evaluate_set(const SetExpr *expr) {
@@ -752,12 +752,12 @@ namespace ObSL {
         scope.protect(obj);
 
         if (!std::holds_alternative<ObSLObject *>(obj)) {
-            throw RuntimeError(Token{.type = TokenType::IDENTIFIER, .lexeme = expr->name, .line = 0, .column = 0, .start_pos = 0, .end_pos = 0}, "Only objects can have fields assigned.");
+            throw RuntimeError(expr->name_token, "Only objects can have fields assigned.");
         }
         const auto instance = std::get<ObSLObject *>(obj);
 
         if (instance->readonly) {
-            throw RuntimeError(Token{.type = TokenType::IDENTIFIER, .lexeme = expr->name, .line = 0, .column = 0, .start_pos = 0, .end_pos = 0}, "Cannot assign to this field, the object is read-only.");
+            throw RuntimeError(expr->name_token, "Cannot assign to this field, the object is read-only.");
         }
 
         Value value = evaluate(expr->value.get());
