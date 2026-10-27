@@ -14,10 +14,37 @@
 
 #include <ObSL/ModulePath.h>
 #include <ObSL/Parser.h>
+#include <limits>
 
 using namespace std::string_view_literals;
 
 namespace ObSL {
+    struct CallDepthScope {
+        uint32_t &depth;
+
+        explicit CallDepthScope(uint32_t &d) : depth(d) { depth++; }
+
+        ~CallDepthScope() { depth--; }
+
+        CallDepthScope(const CallDepthScope &) = delete;
+        CallDepthScope &operator=(const CallDepthScope &) = delete;
+    };
+
+    // Resolves an array index uniformly for reads and writes:
+    static int resolve_array_index(const Value &index_val, const size_t size, const Token &bracket) {
+        if (!std::holds_alternative<double>(index_val))
+            throw RuntimeError(bracket, "Array index must be a number.");
+        const double raw = std::get<double>(index_val);
+        if (!std::isfinite(raw) || raw > static_cast<double>(std::numeric_limits<int>::max()) || raw < static_cast<double>(std::numeric_limits<int>::min()))
+            throw RuntimeError(bracket, "Array index out of bounds.");
+        int index = static_cast<int>(raw);
+        if (index < 0)
+            index += static_cast<int>(size);
+        if (index < 0 || index >= static_cast<int>(size))
+            throw RuntimeError(bracket, "Array index out of bounds.");
+        return index;
+    }
+
     struct EnvironmentGuard {
         std::shared_ptr<Environment> &m_env_ref;
         std::shared_ptr<Environment> m_previous;
@@ -171,13 +198,21 @@ namespace ObSL {
         if (arguments.size() < static_cast<size_t>(function->min_arity()) || arguments.size() > static_cast<size_t>(function->arity())) {
             throw RuntimeError(expr->paren, std::format("Expected between {} and {} arguments but got {}.", function->min_arity(), function->arity(), arguments.size()));
         }
+
+        if (call_depth >= max_call_depth)
+            throw RuntimeError(expr->paren, std::format("Stack overflow: maximum call depth of {} exceeded.", max_call_depth));
+        const CallDepthScope depth_guard(call_depth);
         return function->call(this, arguments, expr->paren);
     }
 
     void Interpreter::execute_expression_stmt(const ExpressionStmt *stmt) { static_cast<void>(evaluate(stmt->expression.get())); }
 
     void Interpreter::execute_print_stmt(const PrintStmt *stmt) {
-        Value value = evaluate(stmt->expression.get());
+        const Value value = evaluate(stmt->expression.get());
+        print_value(value);
+    }
+
+    void Interpreter::print_value(const Value &value) const {
         std::visit([this]<typename T0>(const T0 &arg) {
             using T = std::decay_t<T0>;
             if constexpr (std::is_same_v<T, std::monostate>)
@@ -196,7 +231,7 @@ namespace ObSL {
     }
 
     void Interpreter::execute_print_ln_stmt(const PrintlnStmt *stmt) {
-        execute_print_stmt(reinterpret_cast<const PrintStmt *>(stmt));
+        print_value(evaluate(stmt->expression.get()));
         m_stdout.get() << "\n";
     }
 
@@ -231,16 +266,11 @@ namespace ObSL {
         scope.protect(callee);
         const Value index_val = evaluate(expr->index.get());
 
-        if (std::holds_alternative<ObSLArray *>(callee)) {
-            const auto array = std::get<ObSLArray *>(callee);
-            if (!std::holds_alternative<double>(index_val))
-                throw RuntimeError(expr->bracket, "Array index must be a number.");
-            const int index = static_cast<int>(std::get<double>(index_val));
-            if (index < 0 || index >= array->elements.size())
-                throw RuntimeError(expr->bracket, "Array index out of bounds.");
-            return array->elements[index];
-        }
-        throw RuntimeError(expr->bracket, "Only arrays can be indexed.");
+        if (!std::holds_alternative<ObSLArray *>(callee))
+            throw RuntimeError(expr->bracket, "Only arrays can be indexed.");
+        const auto array = std::get<ObSLArray *>(callee);
+        const int index = resolve_array_index(index_val, array->elements.size(), expr->bracket);
+        return array->elements[index];
     }
 
     Value Interpreter::evaluate_index_assignment(const IndexAssignmentExpr *expr) {
@@ -254,20 +284,7 @@ namespace ObSL {
 
         if (std::holds_alternative<ObSLArray *>(callee)) {
             auto array = std::get<ObSLArray *>(callee);
-
-            if (!std::holds_alternative<double>(index_val)) {
-                throw RuntimeError(expr->bracket, "Array index must be a number.");
-            }
-            int index = static_cast<int>(std::get<double>(index_val));
-            int array_size = static_cast<int>(array->elements.size());
-
-            // negative indexing
-            if (index < 0) {
-                index += array_size;
-            }
-            if (index < 0 || index >= array_size) {
-                throw RuntimeError(expr->bracket, "Array index out of bounds.");
-            }
+            const int index = resolve_array_index(index_val, array->elements.size(), expr->bracket);
             array->elements[index] = value;
             return value;
         }
@@ -281,25 +298,25 @@ namespace ObSL {
         const Value rhs = evaluate(expr->right.get());
         scope.protect(rhs);
 
-        switch (expr->oprt_type) {
+        switch (expr->operator_token.type) {
             case TokenType::GREATER:
-                check_number_operands(expr->oprt_type, lhs, rhs);
+                check_number_operands(expr->operator_token, lhs, rhs);
                 return std::get<double>(lhs) > std::get<double>(rhs);
             case TokenType::GREATER_EQUAL:
-                check_number_operands(expr->oprt_type, lhs, rhs);
+                check_number_operands(expr->operator_token, lhs, rhs);
                 return std::get<double>(lhs) >= std::get<double>(rhs);
             case TokenType::LESS:
-                check_number_operands(expr->oprt_type, lhs, rhs);
+                check_number_operands(expr->operator_token, lhs, rhs);
                 return std::get<double>(lhs) < std::get<double>(rhs);
             case TokenType::LESS_EQUAL:
-                check_number_operands(expr->oprt_type, lhs, rhs);
+                check_number_operands(expr->operator_token, lhs, rhs);
                 return std::get<double>(lhs) <= std::get<double>(rhs);
             case TokenType::BANG_EQUAL:
                 return !is_equal(lhs, rhs);
             case TokenType::EQUAL_EQUAL:
                 return is_equal(lhs, rhs);
             case TokenType::MINUS:
-                check_number_operands(expr->oprt_type, lhs, rhs);
+                check_number_operands(expr->operator_token, lhs, rhs);
                 return std::get<double>(lhs) - std::get<double>(rhs);
             case TokenType::PLUS:
                 if (std::holds_alternative<std::string>(lhs) || std::holds_alternative<std::string>(rhs)) {
@@ -317,34 +334,34 @@ namespace ObSL {
                 if (std::holds_alternative<double>(lhs) && std::holds_alternative<double>(rhs)) {
                     return std::get<double>(lhs) + std::get<double>(rhs);
                 }
-                throw RuntimeError(Token{.type = TokenType::UNKNOWN_, .lexeme = "binary", .line = 0, .column = 0, .start_pos = 0, .end_pos = 0}, "Operands must be numbers or strings.");
+                throw RuntimeError(expr->operator_token, "Operands must be numbers or strings.");
             case TokenType::SLASH:
-                check_number_operands(expr->oprt_type, lhs, rhs);
+                check_number_operands(expr->operator_token, lhs, rhs);
                 if (std::get<double>(rhs) == 0)
-                    throw RuntimeError(Token{.type = expr->oprt_type, .lexeme = "", .line = 0, .column = 0, .start_pos = 0, .end_pos = 0}, "Division by zero.");
+                    throw RuntimeError(expr->operator_token, "Division by zero.");
                 return std::get<double>(lhs) / std::get<double>(rhs);
             case TokenType::PERCENT:
-                check_number_operands(expr->oprt_type, lhs, rhs);
+                check_number_operands(expr->operator_token, lhs, rhs);
                 if (std::get<double>(rhs) == 0)
-                    throw RuntimeError(Token{.type = expr->oprt_type, .lexeme = "", .line = 0, .column = 0, .start_pos = 0, .end_pos = 0}, "Modulo by zero.");
+                    throw RuntimeError(expr->operator_token, "Modulo by zero.");
                 return std::fmod(std::get<double>(lhs), std::get<double>(rhs));
             case TokenType::STAR:
-                check_number_operands(expr->oprt_type, lhs, rhs);
+                check_number_operands(expr->operator_token, lhs, rhs);
                 return std::get<double>(lhs) * std::get<double>(rhs);
             case TokenType::AMPERSAND:
-                check_number_operands(expr->oprt_type, lhs, rhs);
+                check_number_operands(expr->operator_token, lhs, rhs);
                 return static_cast<double>(static_cast<int64_t>(std::get<double>(lhs)) & static_cast<int64_t>(std::get<double>(rhs)));
             case TokenType::PIPE:
-                check_number_operands(expr->oprt_type, lhs, rhs);
+                check_number_operands(expr->operator_token, lhs, rhs);
                 return static_cast<double>(static_cast<int64_t>(std::get<double>(lhs)) | static_cast<int64_t>(std::get<double>(rhs)));
             case TokenType::CARET:
-                check_number_operands(expr->oprt_type, lhs, rhs);
+                check_number_operands(expr->operator_token, lhs, rhs);
                 return static_cast<double>(static_cast<int64_t>(std::get<double>(lhs)) ^ static_cast<int64_t>(std::get<double>(rhs)));
             case TokenType::LESS_LESS:
-                check_number_operands(expr->oprt_type, lhs, rhs);
+                check_number_operands(expr->operator_token, lhs, rhs);
                 return static_cast<double>(static_cast<int64_t>(std::get<double>(lhs)) << static_cast<int64_t>(std::get<double>(rhs)));
             case TokenType::GREATER_GREATER:
-                check_number_operands(expr->oprt_type, lhs, rhs);
+                check_number_operands(expr->operator_token, lhs, rhs);
                 return static_cast<double>(static_cast<int64_t>(std::get<double>(lhs)) >> static_cast<int64_t>(std::get<double>(rhs)));
             default:
                 break;
@@ -356,9 +373,9 @@ namespace ObSL {
 
     Value Interpreter::evaluate_unary(const UnaryExpr *expr) {
         const Value right = evaluate(expr->right.get());
-        switch (expr->oprt_type) {
+        switch (expr->operator_token.type) {
             case TokenType::MINUS:
-                check_number_operand(expr->oprt_type, right);
+                check_number_operand(expr->operator_token, right);
                 return -std::get<double>(right);
             case TokenType::BANG:
                 return !is_truthy(right);
@@ -366,7 +383,7 @@ namespace ObSL {
                 if (std::holds_alternative<double>(right)) {
                     return static_cast<double>(~static_cast<int64_t>(std::get<double>(right)));
                 }
-                throw RuntimeError(Token{.type = TokenType::UNKNOWN_, .lexeme = "unary", .line = 0, .column = 0, .start_pos = 0, .end_pos = 0}, "Operand must be a number.");
+                throw RuntimeError(expr->operator_token, "Operand must be a number.");
             default:
                 break;
         }
@@ -375,7 +392,7 @@ namespace ObSL {
 
     Value Interpreter::evaluate_update(const UpdateExpr *expr) const {
         const Value &current_value = environment->get_ref(expr->token);
-        check_number_operand(expr->oprt_type, current_value);
+        check_number_operand(expr->token, current_value);
         double num = std::get<double>(current_value);
         double new_num = expr->oprt_type == TokenType::PLUS_PLUS ? num + 1.0 : num - 1.0;
         environment->assign(expr->token, Value(new_num));
@@ -438,15 +455,15 @@ namespace ObSL {
         return true;
     }
 
-    void Interpreter::check_number_operand(const TokenType oprt, const Value &oprnd) {
+    void Interpreter::check_number_operand(const Token &oprt, const Value &oprnd) {
         if (std::holds_alternative<double>(oprnd))
             return;
-        throw RuntimeError(Token{.type = oprt, .lexeme = "", .line = 0, .column = 0, .start_pos = 0, .end_pos = 0}, "Operand must be a number.");
+        throw RuntimeError(oprt, "Operand must be a number.");
     }
 
-    void Interpreter::check_number_operands(const TokenType oprt, const Value &lhs, const Value &rhs) {
+    void Interpreter::check_number_operands(const Token &oprt, const Value &lhs, const Value &rhs) {
         if (!std::holds_alternative<double>(lhs) || !std::holds_alternative<double>(rhs)) {
-            throw RuntimeError(Token{.type = oprt, .lexeme = "", .line = 0, .column = 0, .start_pos = 0, .end_pos = 0}, "Operands must be numbers.");
+            throw RuntimeError(oprt, "Operands must be numbers.");
         }
     }
 

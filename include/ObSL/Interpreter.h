@@ -178,6 +178,9 @@ namespace ObSL {
 
         std::size_t m_env_insert_count = 0;
 
+        static constexpr uint32_t max_call_depth = 256;
+        uint32_t call_depth = 0;
+
         void execute(const Stmt *stmt);
 
         [[nodiscard]] Value evaluate(const Expr *expr);
@@ -189,6 +192,8 @@ namespace ObSL {
         void execute_expression_stmt(const ExpressionStmt *stmt);
 
         void execute_print_stmt(const PrintStmt *stmt);
+
+        void print_value(const Value &value) const;
 
         void execute_print_ln_stmt(const PrintlnStmt *stmt);
 
@@ -238,9 +243,9 @@ namespace ObSL {
 
         static bool is_truthy(const Value &value);
 
-        static void check_number_operand(TokenType oprt, const Value &oprnd);
+        static void check_number_operand(const Token &oprt, const Value &oprnd);
 
-        static void check_number_operands(TokenType oprt, const Value &lhs, const Value &rhs);
+        static void check_number_operands(const Token &oprt, const Value &lhs, const Value &rhs);
 
         static bool is_equal(const Value &a, const Value &b);
 
@@ -282,8 +287,6 @@ namespace ObSL {
         [[nodiscard]] std::string to_string() const override;
 
         void mark() override {
-            if (is_marked)
-                return;
             is_marked = true;
             if (closure)
                 closure->mark();
