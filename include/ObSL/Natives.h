@@ -134,8 +134,6 @@ namespace ObSL {
         }
 
         void mark() override {
-            if (is_marked)
-                return;
             is_marked = true;
             for (GCObject *obj : m_GCCaptures) {
                 if (obj)
