@@ -4,12 +4,15 @@
 
 namespace ObSL {
     void mark_value(const Value &val) {
-        if (const auto obj = std::get_if<ObSLObject *>(&val); obj && *obj) {
-            (*obj)->mark();
-        } else if (const auto arr = std::get_if<ObSLArray *>(&val); arr && *arr) {
-            (*arr)->mark();
-        } else if (const auto callable = std::get_if<ObSLCallable *>(&val); callable && *callable) {
-            (*callable)->mark();
+        if (const auto obj = std::get_if<ObSLObject *>(&val); obj && *obj && !(*obj)->is_marked) {
+            (*obj)->is_marked = true;
+            g_mark_pending.push_back(*obj);
+        } else if (const auto arr = std::get_if<ObSLArray *>(&val); arr && *arr && !(*arr)->is_marked) {
+            (*arr)->is_marked = true;
+            g_mark_pending.push_back(*arr);
+        } else if (const auto callable = std::get_if<ObSLCallable *>(&val); callable && *callable && !(*callable)->is_marked) {
+            (*callable)->is_marked = true;
+            g_mark_pending.push_back(*callable);
         }
     }
 
@@ -24,6 +27,12 @@ namespace ObSL {
         }
 
         interpreter->mark_roots();
+
+        while (!g_mark_pending.empty()) {
+            GCObject *current = g_mark_pending.back();
+            g_mark_pending.pop_back();
+            current->mark();
+        }
 
         GCObject **obj = &first_obj;
         while (*obj != nullptr) {

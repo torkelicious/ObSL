@@ -17,6 +17,8 @@ namespace ObSL {
         virtual void mark() = 0;
     };
 
+    inline thread_local std::vector<GCObject *> g_mark_pending;
+
     class GarbageCollector {
         GCObject *first_obj = nullptr;
         size_t allocated_objs = 0;
