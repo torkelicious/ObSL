@@ -87,11 +87,9 @@ namespace ObSL {
             }
             case ExprType::Binary: {
                 auto left = deserialize_expr();
-                const TokenType oprt = read<TokenType>();
+                const Token op_token = deserialize_token(*this);
                 auto right = deserialize_expr();
-                Token dummy_oprt{};
-                dummy_oprt.type = oprt;
-                return std::make_unique<BinaryExpr>(std::move(left), dummy_oprt, std::move(right));
+                return std::make_unique<BinaryExpr>(std::move(left), op_token, std::move(right));
             }
             case ExprType::Logical: {
                 auto left = deserialize_expr();
@@ -106,11 +104,9 @@ namespace ObSL {
                 return std::make_unique<GroupingExpr>(std::move(expr));
             }
             case ExprType::Unary: {
-                const TokenType oprt = read<TokenType>();
+                const Token op_token = deserialize_token(*this);
                 auto right = deserialize_expr();
-                Token dummy_oprt{};
-                dummy_oprt.type = oprt;
-                return std::make_unique<UnaryExpr>(dummy_oprt, std::move(right));
+                return std::make_unique<UnaryExpr>(op_token, std::move(right));
             }
             case ExprType::Variable: {
                 const std::string_view name = read_string_view();

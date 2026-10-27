@@ -88,7 +88,7 @@ namespace ObSL {
             case ExprType::Binary: {
                 const auto *node = static_cast<const BinaryExpr *>(expr);
                 serialize_expr(node->left.get());
-                write(node->oprt_type);
+                serialize_token(*this, node->operator_token);
                 serialize_expr(node->right.get());
                 break;
             }
@@ -106,7 +106,7 @@ namespace ObSL {
             }
             case ExprType::Unary: {
                 const auto *node = static_cast<const UnaryExpr *>(expr);
-                write(node->oprt_type);
+                serialize_token(*this, node->operator_token);
                 serialize_expr(node->right.get());
                 break;
             }
