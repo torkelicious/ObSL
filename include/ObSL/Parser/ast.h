@@ -31,8 +31,6 @@ namespace ObSL {
         bool readonly = false;
 
         void mark() override {
-            if (is_marked)
-                return;
             is_marked = true;
             for (auto &val : fields | std::views::values) {
                 mark_value(val);
@@ -44,8 +42,6 @@ namespace ObSL {
         std::vector<Value> elements;
 
         void mark() override {
-            if (is_marked)
-                return;
             is_marked = true;
             for (auto &val : elements) {
                 mark_value(val);
@@ -177,14 +173,14 @@ namespace ObSL {
 
     struct BinaryExpr : Expr {
         std::unique_ptr<Expr> left;
-        TokenType oprt_type;
+        Token operator_token; // full operator token (lexeme + position), for error reporting
         std::unique_ptr<Expr> right;
 
-        BinaryExpr(std::unique_ptr<Expr> left, const Token &oprt, std::unique_ptr<Expr> right) : left(std::move(left)), oprt_type(oprt.type), right(std::move(right)) {}
+        BinaryExpr(std::unique_ptr<Expr> left, const Token &oprt, std::unique_ptr<Expr> right) : left(std::move(left)), operator_token(oprt), right(std::move(right)) {}
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Binary; }
 
-        [[nodiscard]] std::string to_string() const override { return std::format("({} {} {})", static_cast<int>(oprt_type), left->to_string(), right->to_string()); }
+        [[nodiscard]] std::string to_string() const override { return std::format("({} {} {})", operator_token.lexeme, left->to_string(), right->to_string()); }
     };
 
     struct LogicalExpr : Expr {
@@ -210,14 +206,14 @@ namespace ObSL {
     };
 
     struct UnaryExpr : Expr {
-        TokenType oprt_type;
+        Token operator_token; // full operator token (lexeme + position), for error reporting
         std::unique_ptr<Expr> right;
 
-        UnaryExpr(const Token &oprt, std::unique_ptr<Expr> right) : oprt_type(oprt.type), right(std::move(right)) {}
+        UnaryExpr(const Token &oprt, std::unique_ptr<Expr> right) : operator_token(oprt), right(std::move(right)) {}
 
         [[nodiscard]] ExprType type() const noexcept override { return ExprType::Unary; }
 
-        [[nodiscard]] std::string to_string() const override { return std::format("({} {})", static_cast<int>(oprt_type), right->to_string()); }
+        [[nodiscard]] std::string to_string() const override { return std::format("({} {})", operator_token.lexeme, right->to_string()); }
     };
 
     struct VariableExpr : Expr {
