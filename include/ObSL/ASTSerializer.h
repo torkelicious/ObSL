@@ -6,6 +6,9 @@
 #include <vector>
 
 namespace ObSL {
+    // Bump when the AST wire format changes (v1: no marker; v2: Binary/Unary operator tokens).
+    inline constexpr uint8_t kAstFormatVersion = 2;
+
     struct SerializedModule {
         std::vector<std::string> string_pool;
         std::vector<std::unique_ptr<Stmt>> statements;
@@ -47,8 +50,9 @@ namespace ObSL {
             buffer.clear();
 
             // Structure layout layout:
-            // [String Table Size] [String 1 Size][Chars...] ... [Statements Count]
+            // [Version] [String Table Size] [String 1 Size][Chars...] ... [Statements Count]
             // [Nodes Payload]
+            write<uint8_t>(kAstFormatVersion);
             write<uint32_t>(static_cast<uint32_t>(string_table.size()));
             for (auto str : string_table) {
                 write<uint32_t>(static_cast<uint32_t>(str.size()));

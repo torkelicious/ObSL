@@ -2,6 +2,7 @@
 #include <ObSL/Parser/ast.h>
 #include <cstdint>
 #include <cstring>
+#include <format>
 #include <memory>
 #include <stdexcept>
 
@@ -39,12 +40,17 @@ namespace ObSL {
         std::unique_ptr<Stmt> deserialize_stmt();
 
         static SerializedModule deserialize(const std::vector<uint8_t> &data) {
-            if (data.size() < sizeof(uint32_t)) {
+            if (data.size() < sizeof(uint8_t) + sizeof(uint32_t)) {
                 throw std::runtime_error("Malformed data block");
             }
 
             const uint8_t *ptr = data.data();
             const uint8_t *end = data.data() + data.size();
+
+            const uint8_t version = *ptr++;
+            if (version != kAstFormatVersion) {
+                throw std::runtime_error(std::format("Unsupported AST format version {} (expected {}).", version, kAstFormatVersion));
+            }
 
             // reconstruct String Table Pool
             uint32_t string_count;
